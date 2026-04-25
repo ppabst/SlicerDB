@@ -1,0 +1,52 @@
+[project]
+name = "slicerdb"
+version = "0.0.1"
+description = "Versioned 3D printer slicer settings manager"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "LennyK", email = "noreply@example.com" }]
+
+dependencies = [
+    "fastapi[standard]>=0.136.1",
+    "sqlmodel>=0.0.27",
+    "alembic>=1.14.0",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.7.0",
+    "jinja2>=3.1.5",
+    "python-multipart>=0.0.20",
+    "uvicorn[standard]>=0.34.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.25.0",
+    "ruff>=0.10.0",
+    "mypy>=1.14.0",
+    "httpx>=0.28.1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

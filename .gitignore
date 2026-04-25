@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# SlicerDB
+/data/
+/.bin/
+/app/static/css/output.css
+/app/static/js/htmx.min.js
