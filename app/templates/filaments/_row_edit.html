@@ -1,0 +1,88 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+{# Filament row in edit mode. Same id as the display row so HTMX outerHTML-
+   swap replaces it cleanly. PUT returns the display row; Cancel re-fetches it. #}
+<tr id="filament-{{ f.id }}" class="bg-emerald-50/40">
+    <td colspan="7" class="px-4 py-4">
+        <form hx-put="/filaments/{{ f.id }}"
+              hx-target="#filament-{{ f.id }}"
+              hx-swap="outerHTML"
+              class="grid gap-3 sm:grid-cols-2">
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Name</span>
+                <input type="text" name="name" required value="{{ f.name }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Hersteller</span>
+                <input type="text" name="manufacturer" required value="{{ f.manufacturer }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Material</span>
+                <input type="text" name="material" value="{{ f.material }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Farbe</span>
+                <div class="flex items-center gap-2">
+                    <input type="color"
+                           value="{{ f.color_hex or '#cccccc' }}"
+                           oninput="this.nextElementSibling.value=this.value"
+                           class="h-10 w-12 cursor-pointer rounded border border-slate-300 bg-white p-0.5 shadow-sm">
+                    <input type="text"
+                           name="color_hex"
+                           value="{{ f.color_hex or '' }}"
+                           placeholder="#cccccc"
+                           pattern="^#?[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$"
+                           oninput="if(/^#?[0-9a-fA-F]{6}$/.test(this.value)) this.previousElementSibling.value = this.value.startsWith('#') ? this.value : '#' + this.value"
+                           class="flex-1 rounded border border-slate-300 bg-white px-3 py-2 font-mono text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                </div>
+            </label>
+
+            <div class="space-y-1.5 sm:col-span-2">
+                <p class="text-sm font-medium text-slate-700">Temperaturen <span class="font-normal text-slate-400">(°C)</span></p>
+                <div class="grid grid-cols-3 gap-2 items-end">
+                    <label class="flex flex-col gap-1 text-sm">
+                        <span class="text-slate-700">Hotend min</span>
+                        <input type="number" name="hotend_temp_min" value="{{ f.hotend_temp_min or '' }}" placeholder="190"
+                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
+                    <label class="flex flex-col gap-1 text-sm">
+                        <span class="text-slate-700">Hotend max</span>
+                        <input type="number" name="hotend_temp_max" value="{{ f.hotend_temp_max or '' }}" placeholder="220"
+                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
+                    <label class="flex flex-col gap-1 text-sm">
+                        <span class="text-slate-700">Bett</span>
+                        <input type="number" name="bed_temp" value="{{ f.bed_temp or '' }}" placeholder="60"
+                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
+                </div>
+            </div>
+
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Notizen</span>
+                <textarea name="notes" rows="2"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">{{ f.notes or '' }}</textarea>
+            </label>
+
+            <div class="flex items-center gap-2 sm:col-span-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">
+                    Speichern
+                </button>
+                <button type="button"
+                        hx-get="/filaments/{{ f.id }}/row"
+                        hx-target="#filament-{{ f.id }}"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    Abbrechen
+                </button>
+            </div>
+        </form>
+    </td>
+</tr>

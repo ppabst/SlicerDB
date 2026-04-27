@@ -69,3 +69,58 @@ def test_nozzle_requires_existing_printer(client: TestClient) -> None:
         "/nozzles", data={"printer_id": 999, "diameter_mm": 0.4, "material": "brass"}
     )
     assert response.status_code == 400
+
+
+def test_filament_inline_edit_cycle(client: TestClient) -> None:
+    """Edit-button → form fragment → PUT → updated display fragment."""
+    import re
+
+    # Create.
+    create_html = client.post(
+        "/filaments",
+        data={"name": "Galaxy Black", "manufacturer": "Polymaker", "material": "PLA"},
+    ).text
+    fid = int(re.search(r'hx-delete="/filaments/(\d+)"', create_html).group(1))
+
+    # GET /edit returns a form fragment with the same row id.
+    edit_html = client.get(f"/filaments/{fid}/edit").text
+    assert f'id="filament-{fid}"' in edit_html
+    assert 'hx-put="/filaments/' in edit_html
+    assert 'value="Galaxy Black"' in edit_html
+    assert "Speichern" in edit_html
+    assert "Abbrechen" in edit_html
+
+    # PUT updates and returns a display row fragment.
+    updated_html = client.put(
+        f"/filaments/{fid}",
+        data={
+            "name": "Galaxy Polar",
+            "manufacturer": "Polymaker",
+            "material": "PLA Pro",
+            "hotend_temp_min": 195,
+            "hotend_temp_max": 215,
+            "bed_temp": 55,
+        },
+    ).text
+    assert f'id="filament-{fid}"' in updated_html
+    assert "Galaxy Polar" in updated_html
+    assert "PLA Pro" in updated_html
+    assert "195–215 °C" in updated_html
+    assert "55 °C" in updated_html
+
+    # GET /row (cancel target) returns the display row.
+    row_html = client.get(f"/filaments/{fid}/row").text
+    assert f'id="filament-{fid}"' in row_html
+    assert "Galaxy Polar" in row_html  # already-saved value
+
+
+def test_filament_edit_404_for_unknown_id(client: TestClient) -> None:
+    assert client.get("/filaments/999/edit").status_code == 404
+    assert client.get("/filaments/999/row").status_code == 404
+    assert (
+        client.put(
+            "/filaments/999",
+            data={"name": "x", "manufacturer": "y"},
+        ).status_code
+        == 404
+    )

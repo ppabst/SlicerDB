@@ -1,5 +1,5 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
-{% from "_macros.html" import delete_btn, empty_state %}
+{% from "_macros.html" import empty_state %}
 
 {% if filaments %}
 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -17,21 +17,7 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             {% for f in filaments %}
-            <tr>
-                <td class="px-3 py-2.5">
-                    <span class="inline-block h-4 w-4 rounded-full border border-slate-200" style="background-color: {{ f.color_hex or '#e2e8f0' }};"></span>
-                </td>
-                <td class="px-4 py-2.5 font-medium text-slate-900">{{ f.name }}</td>
-                <td class="px-4 py-2.5 text-slate-600">{{ f.manufacturer }}</td>
-                <td class="px-4 py-2.5">
-                    <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ f.material }}</span>
-                </td>
-                <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">
-                    {% if f.hotend_temp_min and f.hotend_temp_max %}{{ f.hotend_temp_min }}–{{ f.hotend_temp_max }} °C{% else %}—{% endif %}
-                </td>
-                <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">{% if f.bed_temp %}{{ f.bed_temp }} °C{% else %}—{% endif %}</td>
-                <td class="px-4 py-2.5 text-right">{{ delete_btn('/filaments/' ~ f.id, '#filament-list') }}</td>
-            </tr>
+                {% include "filaments/_row.html" %}
             {% endfor %}
         </tbody>
     </table>

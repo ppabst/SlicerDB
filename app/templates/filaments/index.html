@@ -46,10 +46,13 @@
                 <span class="text-xs text-slate-500">Picker oder Hex direkt eingeben.</span>
             </label>
 
-            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {{ field('Hotend min °C', 'hotend_temp_min', type='number', placeholder='190') }}
-                {{ field('Hotend max °C', 'hotend_temp_max', type='number', placeholder='220') }}
-                {{ field('Bett °C', 'bed_temp', type='number', placeholder='60') }}
+            <div class="space-y-1.5">
+                <p class="text-sm font-medium text-slate-700">Temperaturen <span class="font-normal text-slate-400">(°C)</span></p>
+                <div class="grid grid-cols-3 gap-2 items-end">
+                    {{ field('Hotend min', 'hotend_temp_min', type='number', placeholder='190') }}
+                    {{ field('Hotend max', 'hotend_temp_max', type='number', placeholder='220') }}
+                    {{ field('Bett', 'bed_temp', type='number', placeholder='60') }}
+                </div>
             </div>
 
             {{ textarea_field('Notizen', 'notes') }}
