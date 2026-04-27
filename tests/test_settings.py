@@ -29,6 +29,7 @@ def test_save_spoolman_persists_to_db(client: TestClient) -> None:
         "/settings/spoolman",
         data={
             "spoolman_url": "http://my-spoolman:7912",
+            "spoolman_public_url": "http://192.168.1.10:7912/",
             "auto_sync": "1",
             "interval_hours": 2,
         },
@@ -39,6 +40,8 @@ def test_save_spoolman_persists_to_db(client: TestClient) -> None:
     with Session(get_engine()) as s:
         row = get_app_settings(s)
         assert row.spoolman_url == "http://my-spoolman:7912"
+        # Trailing slash gets stripped — link templates do their own join.
+        assert row.spoolman_public_url == "http://192.168.1.10:7912"
         assert row.spoolman_auto_sync is True
         assert row.spoolman_sync_interval_seconds == 2 * 3600
 
@@ -69,11 +72,11 @@ def test_save_clamps_interval(client: TestClient) -> None:
 
     with Session(get_engine()) as s:
         row = update_spoolman_settings(
-            s, url="http://x", auto_sync=True, interval_seconds=10
+            s, url="http://x", public_url=None, auto_sync=True, interval_seconds=10
         )
         assert row.spoolman_sync_interval_seconds == 60  # min clamp
         row = update_spoolman_settings(
-            s, url="http://x", auto_sync=True, interval_seconds=999_999
+            s, url="http://x", public_url=None, auto_sync=True, interval_seconds=999_999
         )
         assert row.spoolman_sync_interval_seconds == 86400  # max clamp
 

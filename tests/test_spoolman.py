@@ -161,7 +161,11 @@ async def test_sync_route_with_mock(
 
     with Session(get_engine()) as s:
         update_spoolman_settings(
-            s, url="http://stub", auto_sync=True, interval_seconds=21600
+            s,
+            url="http://stub",
+            public_url=None,
+            auto_sync=True,
+            interval_seconds=21600,
         )
 
     fake_spoolman["payloads"] = [
@@ -173,9 +177,12 @@ async def test_sync_route_with_mock(
     body = response.text
     assert "Sync ok" in body
     assert "Galaxy Black" in body
-    # Synced filament shows the Spoolman badge and read-only label.
+    # Synced filament shows the Spoolman badge.
     assert "↻ Spoolman" in body
-    assert "read-only" in body
+    # No public URL configured + URL is "http://stub" (not loopback-looking
+    # but also not browser-relevant in tests) — link or read-only either
+    # works, just check we didn't render the regular Bearbeiten button.
+    assert ">Bearbeiten</button>" not in body
 
 
 def test_index_shows_spoolman_panel(client: TestClient) -> None:
@@ -184,3 +191,72 @@ def test_index_shows_spoolman_panel(client: TestClient) -> None:
     # Panel renders the "not configured" hint when SLICERDB_SPOOLMAN_URL is unset.
     assert "Spoolman" in response.text
     assert "Nicht konfiguriert" in response.text
+
+
+def _make_synced_filament(client: TestClient, *, public_url: str | None) -> None:
+    """Configure Spoolman + create one synced filament directly in the DB."""
+    from app.services.runtime_settings import update_spoolman_settings
+
+    with Session(get_engine()) as s:
+        update_spoolman_settings(
+            s,
+            url="http://localhost:7912",
+            public_url=public_url,
+            auto_sync=True,
+            interval_seconds=21600,
+        )
+        s.add(
+            Filament(
+                spoolman_filament_id=42,
+                name="Test PLA",
+                manufacturer="DEEPLEE",
+                material="PLA",
+                color_hex="#000000",
+                hotend_temp_min=210,
+                hotend_temp_max=210,
+                bed_temp=60,
+            )
+        )
+        s.commit()
+
+
+def test_synced_row_shows_link_when_public_url_set(client: TestClient) -> None:
+    _make_synced_filament(client, public_url="http://192.168.1.5:7912")
+    body = client.get("/filaments").text
+    assert "→ Spoolman" in body
+    assert 'href="http://192.168.1.5:7912/filament/show/42"' in body
+    assert 'target="_blank"' in body
+
+
+def test_synced_row_uses_url_when_no_public_url(client: TestClient) -> None:
+    """If only the API URL is set and it's a real LAN address, use it as link."""
+    from app.services.runtime_settings import update_spoolman_settings
+
+    with Session(get_engine()) as s:
+        update_spoolman_settings(
+            s,
+            url="http://192.168.1.42:7912",
+            public_url=None,
+            auto_sync=True,
+            interval_seconds=21600,
+        )
+        s.add(
+            Filament(
+                spoolman_filament_id=7,
+                name="Real",
+                manufacturer="X",
+                material="PLA",
+            )
+        )
+        s.commit()
+
+    body = client.get("/filaments").text
+    assert 'href="http://192.168.1.42:7912/filament/show/7"' in body
+
+
+def test_synced_row_skips_link_for_loopback_url(client: TestClient) -> None:
+    """Don't render a link to localhost — it points at the user's own machine."""
+    _make_synced_filament(client, public_url=None)  # API url is localhost in helper
+    body = client.get("/filaments").text
+    assert "→ Spoolman" not in body
+    assert "read-only" in body

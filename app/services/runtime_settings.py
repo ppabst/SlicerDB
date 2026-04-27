@@ -29,6 +29,7 @@ def get_app_settings(session: Session) -> AppSettings:
         row = AppSettings(
             id=SINGLETON_ID,
             spoolman_url=env_settings.spoolman_url,
+            spoolman_public_url=env_settings.spoolman_public_url,
             spoolman_auto_sync=env_settings.spoolman_auto_sync,
             spoolman_sync_interval_seconds=env_settings.spoolman_sync_interval_seconds,
         )
@@ -42,12 +43,14 @@ def update_spoolman_settings(
     session: Session,
     *,
     url: str | None,
+    public_url: str | None,
     auto_sync: bool,
     interval_seconds: int,
 ) -> AppSettings:
     """Persist new Spoolman config; takes effect on next sync iteration."""
     row = get_app_settings(session)
     row.spoolman_url = (url or "").strip() or None
+    row.spoolman_public_url = (public_url or "").strip().rstrip("/") or None
     row.spoolman_auto_sync = auto_sync
     row.spoolman_sync_interval_seconds = max(60, min(86400, interval_seconds))
     session.add(row)

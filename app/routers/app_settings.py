@@ -46,6 +46,7 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
 def save_spoolman(
     request: Request,
     spoolman_url: str = Form(default=""),
+    spoolman_public_url: str = Form(default=""),
     auto_sync: str | None = Form(default=None),
     interval_hours: float = Form(default=6.0, gt=0, le=24),
     session: Session = Depends(get_session),
@@ -56,6 +57,7 @@ def save_spoolman(
     update_spoolman_settings(
         session,
         url=spoolman_url,
+        public_url=spoolman_public_url,
         auto_sync=bool(auto_sync),
         interval_seconds=int(interval_hours * 3600),
     )

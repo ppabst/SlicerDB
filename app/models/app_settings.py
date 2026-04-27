@@ -22,5 +22,11 @@ class AppSettings(TimestampMixin, SQLModel, table=True):
 
     # ----- Spoolman -----
     spoolman_url: str | None = Field(default=None, max_length=300)
+    # Browser-reachable URL — different from spoolman_url when the container
+    # talks to Spoolman over a loopback (e.g. http://localhost:7912 via
+    # network_mode: host) but the user's browser needs http://<host>:7912.
+    # When set, synced filament rows expose a "→ Spoolman" link button that
+    # opens <public_url>/filament/show/<id> in a new tab.
+    spoolman_public_url: str | None = Field(default=None, max_length=300)
     spoolman_auto_sync: bool = Field(default=True)
     spoolman_sync_interval_seconds: int = Field(default=21600, ge=60, le=86400)

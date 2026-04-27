@@ -26,7 +26,7 @@
     <form method="post" action="/settings/spoolman" class="grid gap-4 p-5">
 
         <label class="flex flex-col gap-1 text-sm">
-            <span class="font-medium text-slate-700">Spoolman-URL</span>
+            <span class="font-medium text-slate-700">Spoolman-URL <span class="font-normal text-slate-400">(für API)</span></span>
             <div class="flex items-center gap-2">
                 <input type="url"
                        name="spoolman_url"
@@ -43,10 +43,24 @@
                 </button>
             </div>
             <span class="text-xs text-slate-500">
-                Aus dem Container heraus — bei <code class="rounded bg-slate-100 px-1">network_mode: host</code>
-                ist <code class="rounded bg-slate-100 px-1">http://localhost:7912</code> richtig,
-                im LAN ggf. <code class="rounded bg-slate-100 px-1">http://192.168.x.x:7912</code>.
+                Wie der <em>Container</em> Spoolman erreicht. Bei <code class="rounded bg-slate-100 px-1">network_mode: host</code>
+                üblicherweise <code class="rounded bg-slate-100 px-1">http://localhost:7912</code>.
                 Leer lassen deaktiviert die Integration.
+            </span>
+        </label>
+
+        <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium text-slate-700">Öffentliche URL <span class="font-normal text-slate-400">(für Browser-Links)</span></span>
+            <input type="url"
+                   name="spoolman_public_url"
+                   value="{{ cfg.spoolman_public_url or '' }}"
+                   placeholder="http://192.168.x.x:7912"
+                   class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            <span class="text-xs text-slate-500">
+                Wie <em>dein Browser</em> Spoolman erreicht (LAN-IP des Hosts). Wird für die
+                <code class="rounded bg-slate-100 px-1">→ Spoolman</code>-Knöpfe in der Filament-Liste verwendet,
+                die im neuen Tab das jeweilige Filament in Spoolman öffnen.
+                Leer lassen blendet die Knöpfe aus.
             </span>
         </label>
 

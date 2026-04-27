@@ -35,6 +35,7 @@ def _spoolman_status(session: Session) -> dict:
     return {
         "configured": bool(cfg.spoolman_url),
         "url": cfg.spoolman_url,
+        "public_url": cfg.spoolman_public_url,
         "auto_sync": cfg.spoolman_auto_sync,
         "interval_hours": cfg.spoolman_sync_interval_seconds / 3600,
         "last_synced_at": last_synced_at,

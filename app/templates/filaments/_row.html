@@ -36,7 +36,26 @@
     <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">{% if f.bed_temp %}{{ f.bed_temp }} °C{% else %}—{% endif %}</td>
     <td class="px-4 py-2.5 text-right">
         {% if is_synced %}
-            <span class="text-xs text-slate-400" title="Synchronisierte Filamente werden aus Spoolman gepflegt.">read-only</span>
+            {# Public URL is preferred for browser links; fall back to the API
+               URL when it's already a host-reachable address (LAN IP). Skip
+               the link entirely when the only URL is loopback-only — clicking
+               it from the user's machine would just hit their own localhost. #}
+            {% set link_base = spoolman.public_url or spoolman.url %}
+            {% set looks_loopback = link_base and ('localhost' in link_base or '127.0.0.1' in link_base) %}
+            <div class="flex items-center justify-end gap-1.5">
+                {% if link_base and not looks_loopback %}
+                <a href="{{ link_base.rstrip('/') }}/filament/show/{{ f.spoolman_filament_id }}"
+                   target="_blank"
+                   rel="noopener"
+                   class="inline-flex items-center gap-1 rounded border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 hover:bg-sky-100"
+                   title="In Spoolman öffnen (neuer Tab)">
+                    → Spoolman
+                </a>
+                {% else %}
+                <span class="text-xs text-slate-400"
+                      title="Synchronisiert aus Spoolman. Für direkten Browser-Link unter Einstellungen eine LAN-erreichbare öffentliche URL setzen.">read-only</span>
+                {% endif %}
+            </div>
         {% else %}
         <div class="flex items-center justify-end gap-1.5">
             <button type="button"
