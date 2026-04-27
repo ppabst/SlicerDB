@@ -155,11 +155,14 @@ def test_sync_route_without_spoolman_url_shows_message(client: TestClient) -> No
 async def test_sync_route_with_mock(
     monkeypatch: pytest.MonkeyPatch, client: TestClient, fake_spoolman
 ) -> None:
-    # The conftest fixture reloads app.config/db/main but not the router
-    # modules — so the router's `app_settings` reference still points at the
-    # original settings object. Patch *that* one to enable sync.
-    from app.routers import filaments as filaments_router
-    monkeypatch.setattr(filaments_router.app_settings, "spoolman_url", "http://stub")
+    # Spoolman config now lives in the DB (app_settings table). Set the
+    # URL via the runtime_settings service so the route picks it up.
+    from app.services.runtime_settings import update_spoolman_settings
+
+    with Session(get_engine()) as s:
+        update_spoolman_settings(
+            s, url="http://stub", auto_sync=True, interval_seconds=21600
+        )
 
     fake_spoolman["payloads"] = [
         _payload(id_=42, name="Galaxy Black", vendor="Polymaker", color="222222")

@@ -25,6 +25,7 @@ def test_static_pages_render(client: TestClient) -> None:
         "/filaments",
         "/buildplates",
         "/profiles",
+        "/settings",
     ]:
         response = client.get(path)
         assert response.status_code == 200, f"{path} returned {response.status_code}"

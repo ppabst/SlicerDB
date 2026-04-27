@@ -6,6 +6,7 @@ Public surface: import all classes from this package so Alembic's autogenerate
 sees them when introspecting metadata.
 """
 
+from app.models.app_settings import SINGLETON_ID, AppSettings
 from app.models.base import TimestampMixin
 from app.models.build_plate import BuildPlate
 from app.models.filament import Filament
@@ -15,6 +16,8 @@ from app.models.profile import PrintProfile, ProfileVersion
 from app.models.slicer import Slicer
 
 __all__ = [
+    "SINGLETON_ID",
+    "AppSettings",
     "BuildPlate",
     "Filament",
     "Nozzle",

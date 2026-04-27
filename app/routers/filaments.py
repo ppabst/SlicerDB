@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session, func, select
 
-from app.config import settings as app_settings
 from app.db import get_session
 from app.models import Filament
 from app.services.integrity import references_to_filament
+from app.services.runtime_settings import get_app_settings
 from app.services.spoolman import SpoolmanClient, sync_filaments
 from app.templating import templates
 
@@ -23,6 +23,7 @@ _last_sync_error: str | None = None
 
 def _spoolman_status(session: Session) -> dict:
     """Compose the panel context: configured? last sync? error?"""
+    cfg = get_app_settings(session)
     last_synced_at: datetime | None = session.exec(
         select(func.max(Filament.synced_at))
     ).one()
@@ -32,10 +33,10 @@ def _spoolman_status(session: Session) -> dict:
         .where(Filament.spoolman_filament_id.is_not(None))
     ).one()
     return {
-        "configured": bool(app_settings.spoolman_url),
-        "url": app_settings.spoolman_url,
-        "auto_sync": app_settings.spoolman_auto_sync,
-        "interval_hours": app_settings.spoolman_sync_interval_seconds / 3600,
+        "configured": bool(cfg.spoolman_url),
+        "url": cfg.spoolman_url,
+        "auto_sync": cfg.spoolman_auto_sync,
+        "interval_hours": cfg.spoolman_sync_interval_seconds / 3600,
         "last_synced_at": last_synced_at,
         "synced_count": synced_count,
         "last_error": _last_sync_error,
@@ -86,14 +87,15 @@ async def sync_now(
 ) -> HTMLResponse:
     """Manual Spoolman sync trigger. Returns the updated list fragment."""
     global _last_sync_error
-    if not app_settings.spoolman_url:
+    cfg = get_app_settings(session)
+    if not cfg.spoolman_url:
         return _list_response(
             request,
             session,
             sync_message="Spoolman ist nicht konfiguriert "
-            "(SLICERDB_SPOOLMAN_URL setzen).",
+            "— unter Einstellungen eine URL hinterlegen.",
         )
-    client = SpoolmanClient(app_settings.spoolman_url)
+    client = SpoolmanClient(cfg.spoolman_url)
     result = await sync_filaments(session, client)
     if result.error:
         _last_sync_error = result.error

@@ -1,0 +1,106 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+{% extends "base.html" %}
+{% from "_macros.html" import page_header %}
+
+{% block title %}Einstellungen · Slicekeeper{% endblock %}
+
+{% block content %}
+{{ page_header('Einstellungen', 'Konfiguration der Integrationen — wird in der Datenbank gespeichert und überlebt Container-Neustarts.') }}
+
+{% if saved %}
+<div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+    Gespeichert. Änderungen werden im Hintergrund-Sync innerhalb der nächsten Minute aktiv.
+</div>
+{% endif %}
+
+<section class="rounded-lg border border-slate-200 bg-white shadow-sm">
+    <header class="border-b border-slate-200 p-5">
+        <h2 class="text-lg font-semibold tracking-tight">Spoolman</h2>
+        <p class="mt-1 text-sm text-slate-600">
+            Spoolman ist der Filament-Inventarisierer. Slicekeeper zieht regelmäßig deine Filament-Liste rüber,
+            damit du sie in Profilen referenzieren kannst. Synchronisierte Filamente sind hier read-only —
+            Änderungen pflegst du in Spoolman.
+        </p>
+    </header>
+
+    <form method="post" action="/settings/spoolman" class="grid gap-4 p-5">
+
+        <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium text-slate-700">Spoolman-URL</span>
+            <div class="flex items-center gap-2">
+                <input type="url"
+                       name="spoolman_url"
+                       value="{{ cfg.spoolman_url or '' }}"
+                       placeholder="http://localhost:7912"
+                       class="flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                <button type="button"
+                        hx-post="/settings/spoolman/test"
+                        hx-include="closest form"
+                        hx-target="body"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-700 hover:bg-sky-100">
+                    Verbindung testen
+                </button>
+            </div>
+            <span class="text-xs text-slate-500">
+                Aus dem Container heraus — bei <code class="rounded bg-slate-100 px-1">network_mode: host</code>
+                ist <code class="rounded bg-slate-100 px-1">http://localhost:7912</code> richtig,
+                im LAN ggf. <code class="rounded bg-slate-100 px-1">http://192.168.x.x:7912</code>.
+                Leer lassen deaktiviert die Integration.
+            </span>
+        </label>
+
+        {% if test_result %}
+        <div class="rounded border {% if test_result.ok %}border-emerald-200 bg-emerald-50 text-emerald-900{% else %}border-rose-200 bg-rose-50 text-rose-900{% endif %} p-2.5 text-xs">
+            <span class="font-semibold">{% if test_result.ok %}✓{% else %}✗{% endif %}</span>
+            {{ test_result.msg }}
+        </div>
+        {% endif %}
+
+        <label class="flex items-start gap-2 text-sm">
+            <input type="checkbox"
+                   name="auto_sync"
+                   value="1"
+                   {% if cfg.spoolman_auto_sync %}checked{% endif %}
+                   class="mt-1 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-400">
+            <span>
+                <span class="font-medium text-slate-700">Auto-Sync aktivieren</span>
+                <span class="block text-xs text-slate-500">
+                    Wenn aktiv, holt Slicekeeper im konfigurierten Intervall die Filamente aus Spoolman.
+                    Manueller Sync auf der Filament-Seite geht unabhängig davon.
+                </span>
+            </span>
+        </label>
+
+        <label class="flex flex-col gap-1 text-sm">
+            <span class="font-medium text-slate-700">Sync-Intervall (Stunden)</span>
+            <input type="number"
+                   name="interval_hours"
+                   step="0.25"
+                   min="0.05"
+                   max="24"
+                   value="{{ '%.2f'|format(interval_hours) }}"
+                   class="w-32 rounded border border-slate-300 bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            <span class="text-xs text-slate-500">
+                Default 6 h. Untergrenze 0,05 h ≈ 3 min, Obergrenze 24 h.
+            </span>
+        </label>
+
+        <div class="flex items-center gap-2 pt-1">
+            <button type="submit"
+                    class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">
+                Speichern
+            </button>
+            <a href="/filaments" class="text-sm text-slate-600 hover:text-slate-900 underline">
+                → Zur Filament-Liste
+            </a>
+        </div>
+    </form>
+</section>
+
+<p class="mt-4 text-xs text-slate-500">
+    Die Werte werden in der Tabelle <code class="rounded bg-slate-100 px-1">app_settings</code> gespeichert.
+    ENV-Variablen <code class="rounded bg-slate-100 px-1">SLICERDB_SPOOLMAN_*</code> werden beim ersten
+    Container-Start als Initialwerte übernommen, danach hat die GUI Vorrang.
+</p>
+{% endblock %}
