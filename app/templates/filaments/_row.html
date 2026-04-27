@@ -1,30 +1,43 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
-{# Single filament row in display mode. The edit-row template returns a
-   form fragment with the same id, so HTMX outerHTML-swaps replace this
-   whole <tr>. #}
+{% set is_synced = f.spoolman_filament_id is not none %}
 <tr id="filament-{{ f.id }}">
     <td class="px-3 py-2.5">
         <span class="inline-block h-4 w-4 rounded-full border border-slate-200" style="background-color: {{ f.color_hex or '#e2e8f0' }};"></span>
     </td>
     <td class="px-4 py-2.5 font-medium text-slate-900">
-        <button type="button"
-                class="text-left hover:text-emerald-700"
-                hx-get="/filaments/{{ f.id }}/edit"
-                hx-target="#filament-{{ f.id }}"
-                hx-swap="outerHTML"
-                title="Bearbeiten">
-            {{ f.name }}
-        </button>
+        {% if is_synced %}
+            <span>{{ f.name }}</span>
+            <span class="ml-1.5 inline-flex items-center gap-0.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700"
+                  title="Aus Spoolman synchronisiert (ID {{ f.spoolman_filament_id }}). Bearbeiten in Spoolman.">
+                ↻ Spoolman
+            </span>
+        {% else %}
+            <button type="button"
+                    class="text-left hover:text-emerald-700"
+                    hx-get="/filaments/{{ f.id }}/edit"
+                    hx-target="#filament-{{ f.id }}"
+                    hx-swap="outerHTML"
+                    title="Bearbeiten">{{ f.name }}</button>
+        {% endif %}
     </td>
     <td class="px-4 py-2.5 text-slate-600">{{ f.manufacturer }}</td>
     <td class="px-4 py-2.5">
         <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ f.material }}</span>
     </td>
     <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">
-        {% if f.hotend_temp_min and f.hotend_temp_max %}{{ f.hotend_temp_min }}–{{ f.hotend_temp_max }} °C{% else %}—{% endif %}
+        {%- if f.hotend_temp_min and f.hotend_temp_max -%}
+            {%- if f.hotend_temp_min == f.hotend_temp_max -%}
+                {{ f.hotend_temp_min }} °C
+            {%- else -%}
+                {{ f.hotend_temp_min }}–{{ f.hotend_temp_max }} °C
+            {%- endif -%}
+        {%- else -%}—{%- endif -%}
     </td>
     <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">{% if f.bed_temp %}{{ f.bed_temp }} °C{% else %}—{% endif %}</td>
     <td class="px-4 py-2.5 text-right">
+        {% if is_synced %}
+            <span class="text-xs text-slate-400" title="Synchronisierte Filamente werden aus Spoolman gepflegt.">read-only</span>
+        {% else %}
         <div class="flex items-center justify-end gap-1.5">
             <button type="button"
                     hx-get="/filaments/{{ f.id }}/edit"
@@ -42,5 +55,6 @@
                 Löschen
             </button>
         </div>
+        {% endif %}
     </td>
 </tr>

@@ -1,6 +1,7 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
 {% from "_macros.html" import empty_state, delete_blocked_banner %}
 
+{% include "filaments/_spoolman_panel.html" %}
 {{ delete_blocked_banner(delete_error) }}
 
 {% if filaments %}

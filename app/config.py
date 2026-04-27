@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     data_dir: Path = Field(default=Path("./data"))
     spoolman_url: str | None = Field(default=None)
+    spoolman_auto_sync: bool = Field(default=True)
+    spoolman_sync_interval_seconds: int = Field(default=21600, ge=60)  # 6h default
     bind_host: str = Field(default="0.0.0.0")
     bind_port: int = Field(default=8080)
     debug: bool = Field(default=False)

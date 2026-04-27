@@ -1,0 +1,54 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+{# Spoolman status panel above the filament list. Reads `spoolman` and
+   optional `sync_message` from the rendering context. #}
+<div class="mb-3 rounded-lg border {% if spoolman.last_error %}border-rose-200 bg-rose-50{% elif spoolman.configured %}border-sky-200 bg-sky-50{% else %}border-slate-200 bg-slate-50{% endif %} p-3 text-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="space-y-0.5">
+            <p class="font-semibold {% if spoolman.last_error %}text-rose-900{% elif spoolman.configured %}text-sky-900{% else %}text-slate-700{% endif %}">
+                Spoolman
+                {% if spoolman.configured %}
+                    <span class="font-normal text-xs text-slate-500">· {{ spoolman.url }}</span>
+                {% endif %}
+            </p>
+            {% if not spoolman.configured %}
+                <p class="text-xs text-slate-600">
+                    Nicht konfiguriert. <code class="rounded bg-slate-100 px-1">SLICERDB_SPOOLMAN_URL</code> setzen, dann Container neu starten.
+                </p>
+            {% elif spoolman.last_error %}
+                <p class="text-xs text-rose-800">Letzter Sync fehlgeschlagen: {{ spoolman.last_error }}</p>
+                {% if spoolman.last_synced_at %}
+                <p class="text-xs text-rose-700/80">Erfolgreich zuletzt: {{ spoolman.last_synced_at.strftime('%Y-%m-%d %H:%M UTC') }}</p>
+                {% endif %}
+            {% else %}
+                <p class="text-xs text-slate-600">
+                    {% if spoolman.last_synced_at %}
+                        Letzter Sync: <span class="tabular-nums">{{ spoolman.last_synced_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+                    {% else %}
+                        Noch nie synchronisiert.
+                    {% endif %}
+                    <span class="text-slate-400">·</span>
+                    {{ spoolman.synced_count }} Filament{{ 'e' if spoolman.synced_count != 1 else '' }} aus Spoolman
+                    {% if spoolman.auto_sync %}
+                        <span class="text-slate-400">·</span>
+                        Auto-Sync alle {{ "%.0f"|format(spoolman.interval_hours) }} h
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+        {% if spoolman.configured %}
+        <button type="button"
+                hx-post="/filaments/sync"
+                hx-target="#filament-list"
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+                hx-indicator="#sync-spinner"
+                class="inline-flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60">
+            <span id="sync-spinner" class="htmx-indicator">…</span>
+            ↻ Jetzt synchronisieren
+        </button>
+        {% endif %}
+    </div>
+    {% if sync_message %}
+    <p class="mt-2 rounded bg-white/60 px-2 py-1 text-xs font-mono">{{ sync_message }}</p>
+    {% endif %}
+</div>

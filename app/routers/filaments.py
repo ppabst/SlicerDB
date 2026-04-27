@@ -1,15 +1,45 @@
 # SPDX-FileCopyrightText: 2026 LennyK
 # SPDX-License-Identifier: GPL-3.0-or-later
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
+from app.config import settings as app_settings
 from app.db import get_session
 from app.models import Filament
 from app.services.integrity import references_to_filament
+from app.services.spoolman import SpoolmanClient, sync_filaments
 from app.templating import templates
 
 router = APIRouter(prefix="/filaments", tags=["filaments"])
+
+
+# Module-level sync status — single-process app, so a plain var is fine.
+# Tests reset this between runs via the conftest fixture (module reload).
+_last_sync_error: str | None = None
+
+
+def _spoolman_status(session: Session) -> dict:
+    """Compose the panel context: configured? last sync? error?"""
+    last_synced_at: datetime | None = session.exec(
+        select(func.max(Filament.synced_at))
+    ).one()
+    synced_count: int = session.exec(
+        select(func.count())
+        .select_from(Filament)
+        .where(Filament.spoolman_filament_id.is_not(None))
+    ).one()
+    return {
+        "configured": bool(app_settings.spoolman_url),
+        "url": app_settings.spoolman_url,
+        "auto_sync": app_settings.spoolman_auto_sync,
+        "interval_hours": app_settings.spoolman_sync_interval_seconds / 3600,
+        "last_synced_at": last_synced_at,
+        "synced_count": synced_count,
+        "last_error": _last_sync_error,
+    }
 
 
 def _list_response(
@@ -17,6 +47,7 @@ def _list_response(
     session: Session,
     *,
     delete_error: dict | None = None,
+    sync_message: str | None = None,
 ) -> HTMLResponse:
     filaments = session.exec(
         select(Filament).order_by(Filament.manufacturer, Filament.name)
@@ -24,7 +55,12 @@ def _list_response(
     return templates.TemplateResponse(
         request,
         "filaments/_list.html",
-        {"filaments": filaments, "delete_error": delete_error},
+        {
+            "filaments": filaments,
+            "delete_error": delete_error,
+            "spoolman": _spoolman_status(session),
+            "sync_message": sync_message,
+        },
     )
 
 
@@ -34,8 +70,41 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
         select(Filament).order_by(Filament.manufacturer, Filament.name)
     ).all()
     return templates.TemplateResponse(
-        request, "filaments/index.html", {"filaments": filaments}
+        request,
+        "filaments/index.html",
+        {
+            "filaments": filaments,
+            "spoolman": _spoolman_status(session),
+            "sync_message": None,
+        },
     )
+
+
+@router.post("/sync", response_class=HTMLResponse)
+async def sync_now(
+    request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    """Manual Spoolman sync trigger. Returns the updated list fragment."""
+    global _last_sync_error
+    if not app_settings.spoolman_url:
+        return _list_response(
+            request,
+            session,
+            sync_message="Spoolman ist nicht konfiguriert "
+            "(SLICERDB_SPOOLMAN_URL setzen).",
+        )
+    client = SpoolmanClient(app_settings.spoolman_url)
+    result = await sync_filaments(session, client)
+    if result.error:
+        _last_sync_error = result.error
+        msg = f"Sync fehlgeschlagen: {result.error}"
+    else:
+        _last_sync_error = None
+        msg = (
+            f"Sync ok — {result.inserted} neu, "
+            f"{result.updated} aktualisiert, {result.unchanged} unverändert."
+        )
+    return _list_response(request, session, sync_message=msg)
 
 
 @router.post("", response_class=HTMLResponse)

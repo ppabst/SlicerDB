@@ -1,19 +1,54 @@
 # SPDX-FileCopyrightText: 2026 LennyK
 # SPDX-License-Identifier: GPL-3.0-or-later
-from contextlib import asynccontextmanager
+import asyncio
+import logging
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from sqlmodel import Session
 
 from app import __version__
 from app.config import settings
-from app.db import run_migrations
+from app.db import get_engine, run_migrations
 from app.routers import buildplates, filaments, nozzles, printers, profiles, slicers
+from app.services.spoolman import SpoolmanClient, sync_filaments
 from app.templating import templates
 
+log = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).parent
+
+
+async def _spoolman_sync_loop() -> None:
+    """Periodically pull filaments from Spoolman.
+
+    Runs once shortly after startup (10 s grace period so the migration is
+    finished and tests don't trip over it), then on the configured interval.
+    Each iteration is wrapped in try/except so a Spoolman outage never
+    crashes the loop.
+    """
+    if not settings.spoolman_url:
+        return
+    await asyncio.sleep(10)
+    client = SpoolmanClient(settings.spoolman_url)
+    while True:
+        try:
+            with Session(get_engine()) as s:
+                result = await sync_filaments(s, client)
+            if result.error:
+                log.warning("Background Spoolman sync failed: %s", result.error)
+            else:
+                log.info(
+                    "Spoolman sync: %d new, %d updated, %d unchanged",
+                    result.inserted,
+                    result.updated,
+                    result.unchanged,
+                )
+        except Exception:  # pragma: no cover — defensive
+            log.exception("Spoolman sync loop iteration crashed; continuing")
+        await asyncio.sleep(settings.spoolman_sync_interval_seconds)
 
 
 @asynccontextmanager
@@ -21,7 +56,14 @@ async def lifespan(_app: FastAPI):
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     settings.files_dir.mkdir(parents=True, exist_ok=True)
     run_migrations()
+    sync_task: asyncio.Task | None = None
+    if settings.spoolman_url and settings.spoolman_auto_sync:
+        sync_task = asyncio.create_task(_spoolman_sync_loop())
     yield
+    if sync_task is not None:
+        sync_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await sync_task
 
 
 app = FastAPI(
