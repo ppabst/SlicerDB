@@ -26,7 +26,7 @@ from app.models import (
     ProfileVersion,
     Slicer,
 )
-from app.services.slicer_parsers import parse_settings, parse_user_settings
+from app.services.slicer_parsers import detect_format, parse_settings, parse_user_settings
 from app.templating import templates
 
 ALLOWED_RATINGS = {"good", "bad", "untested"}
@@ -325,6 +325,41 @@ def rate_version(
         raise HTTPException(status_code=404, detail="Version not found")
     version.rating = rating
     version.rating_note = (rating_note or None)
+    session.add(version)
+    session.commit()
+    return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)
+
+
+@router.post("/{profile_id}/versions/{version_id}/reparse")
+def reparse_version(
+    profile_id: int,
+    version_id: int,
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    """Re-run the slicer-file parser against this version's stored blob.
+
+    Useful when:
+    - the slicer's `profile_format` was wrong at upload time (e.g. orca-json
+      set on a slicer that actually produces ZIP bundles), or
+    - the parser improved since the original upload.
+
+    The detected format wins over whatever was stored, so changing the slicer
+    entry afterwards isn't necessary — we sniff the file's magic bytes.
+    """
+    version = session.get(ProfileVersion, version_id)
+    if version is None or version.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    if not version.raw_blob_path:
+        raise HTTPException(status_code=400, detail="Version has no stored file")
+    full_path = settings.files_dir / version.raw_blob_path
+    if not full_path.exists():
+        raise HTTPException(status_code=404, detail="File missing on disk")
+
+    detected = detect_format(full_path)
+    new_settings = parse_settings(detected, full_path) or None
+    version.settings_json = new_settings
+    if detected:
+        version.raw_format = detected
     session.add(version)
     session.commit()
     return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)

@@ -172,8 +172,9 @@ def test_upload_auto_parses_orca_json(client: TestClient) -> None:
     assert ">0.16<" in response.text
     # User override won over the parsed value.
     assert ">70<" in response.text
-    # Noise key was dropped.
-    assert "inherits" not in response.text
+    # Inheritance banner shows the parent profile name.
+    assert "Delta-Profil" in response.text
+    assert "base" in response.text  # parent name from "inherits": "base"
 
 
 def test_upload_auto_parses_anycubic_bundle(client: TestClient) -> None:

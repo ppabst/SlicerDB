@@ -35,7 +35,7 @@ _NOISE_KEYS = frozenset(
     {
         "name",
         "from",
-        "inherits",
+        "inherits",  # filtered from settings table; lifted to __inherits__ separately
         "version",
         "is_custom_defined",
         "print_settings_id",
@@ -48,22 +48,52 @@ _NOISE_KEYS = frozenset(
     }
 )
 
+# OrcaSlicer / Anycubic Slicer Next save user profiles as "delta" profiles —
+# only the keys that differ from the parent (named in `inherits`) are stored.
+# We keep the parent reference under this key so the UI can warn the user
+# that what they see is incomplete on its own.
+INHERITS_KEY = "__inherits__"
+
+
+def detect_format(file_path: Path) -> str | None:
+    """Sniff the first bytes of a file to pick a parser.
+
+    OrcaSlicer-family slicers can export either a single JSON or a ZIP bundle
+    (.anycubic_printer, .orca_3mf, etc.) and users mix them up — looking at
+    the bytes is more reliable than what the slicer entry claims.
+    """
+    try:
+        with file_path.open("rb") as f:
+            head = f.read(4)
+    except OSError:  # pragma: no cover
+        return None
+    if head[:2] == b"PK":
+        return "anycubic-bundle"
+    # JSON files often start with whitespace; strip it for the check.
+    stripped = head.lstrip()
+    if stripped.startswith(b"{") or stripped.startswith(b"["):
+        return "orca-json"
+    return None
+
 
 def parse_settings(raw_format: str | None, file_path: Path) -> dict[str, Any]:
-    """Dispatch to the right parser based on the slicer's declared format.
+    """Dispatch to the right parser based on the file's magic bytes.
 
-    Failures are swallowed and logged — we never break the upload path because
-    of a parse error.
+    Falls back to the slicer's declared `raw_format` if sniffing yields
+    nothing useful. Failures are swallowed and logged — we never break the
+    upload path because of a parse error.
     """
     if not file_path.exists():
         return {}
+    detected = detect_format(file_path)
+    chosen = detected or raw_format
     try:
-        if raw_format == "orca-json":
+        if chosen == "orca-json":
             return _parse_orca_json(file_path)
-        if raw_format == "anycubic-bundle":
+        if chosen == "anycubic-bundle":
             return _parse_anycubic_bundle(file_path)
     except Exception:  # pragma: no cover — defensive
-        log.exception("Failed to parse %s as %s", file_path.name, raw_format)
+        log.exception("Failed to parse %s as %s", file_path.name, chosen)
     return {}
 
 
@@ -74,7 +104,11 @@ def _parse_orca_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_bytes())
     if not isinstance(data, dict):
         return {}
-    return _clean(data)
+    cleaned = _clean(data)
+    parent = data.get("inherits")
+    if isinstance(parent, str) and parent.strip():
+        cleaned[INHERITS_KEY] = parent.strip()
+    return cleaned
 
 
 # ---------- Anycubic bundle (ZIP of Orca-style JSONs) ----------
@@ -114,6 +148,11 @@ def _parse_anycubic_bundle(path: Path) -> dict[str, Any]:
                 # Prefix the key with the section so we don't collide between
                 # printer/filament/process settings of the same name.
                 merged[f"{section}.{key}" if section else key] = value
+
+            parent = obj.get("inherits")
+            if isinstance(parent, str) and parent.strip():
+                key = f"{section}.{INHERITS_KEY}" if section else INHERITS_KEY
+                merged[key] = parent.strip()
     return merged
 
 
