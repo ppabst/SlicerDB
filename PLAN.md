@@ -1,7 +1,7 @@
 # SlicerDB — Implementierungsplan
 
-**Stand:** 2026-04-25
-**Status:** Planungsentwurf, wartet auf Freigabe
+**Stand:** 2026-04-27
+**Status:** Phase 0 + 1 fertig & deployed auf Spoolman-VM (<your-host>:8080)
 
 ## 1. Ziel
 
@@ -120,24 +120,25 @@ slicerdb/
 
 ## 6. Roadmap (Phasen mit Akzeptanzkriterien)
 
-### Phase 0 — Setup
-- GitHub-Repo `ppabst/SlicerDB` privat anlegen
-- Lokales Repo, `.gitignore`, README, LICENSE-Platzhalter
-- pyproject.toml mit ruff+mypy+pytest
-- Dockerfile + compose.yml, „Hello SlicerDB" lauffähig auf `:8080`
-- CI: ruff + mypy + pytest + docker build green
+### Phase 0 — Setup ✅ (2026-04-25)
+- GitHub-Repo `ppabst/SlicerDB` privat anlegen ✅
+- Lokales Repo, `.gitignore`, README, LICENSE GPL-3.0 ✅
+- pyproject.toml mit ruff+mypy+pytest ✅
+- Multi-stage Dockerfile + compose.yml, „Hello SlicerDB" lauffähig auf `:8080` ✅
+- CI-Workflow geschrieben (geparkt, braucht PAT mit `workflow`-Scope)
 
-**Done wenn:** `docker compose up` zeigt Welcome-Page im Browser.
+### Phase 1 — MVP CRUD ✅ (2026-04-27)
+- Schema + Alembic-Init ✅
+- CRUD für Printer, Nozzle, Slicer, Filament, PrintProfile ✅
+- File-Upload für ProfileVersion mit Notiz, automatisches version_no++ ✅
+- Datei-Download je Version ✅
+- HTMX-UI: Listen + Detail, Tailwind-Styling ✅
+- Aktive Version markieren, Versionshistorie pro Profil ✅
+- Bewertung pro Version (gut/schlecht/ungetestet) ✅
+- 9 Tests grün, ruff clean
+- Deployed auf Spoolman-LXC (<your-host>:8080), Docker 29.4.1, network_mode:host
 
-### Phase 1 — MVP CRUD
-- Schema + Alembic-Init
-- CRUD für: Printer, Nozzle, Slicer, Filament (manuell), PrintProfile
-- File-Upload für ProfileVersion mit Notiz, automatisches version_no++
-- Datei-Download je Version
-- HTMX-UI: Listen + Detail + Inline-Edit, Tailwind-Styling
-- Aktive Version markieren, Versionshistorie pro Profil
-
-**Done wenn:** Du legst einen Drucker, Nozzle, Filament, Profil und 2 Versionen an, lädst die Datei wieder runter — alles funktioniert.
+**Inline-Edit für CRUD-Entitäten kommt in Phase 1.5.**
 
 ### Phase 2 — Spoolman-Sync
 - httpx-Client, Endpunkte `/api/v1/filament`, `/api/v1/vendor`
@@ -186,12 +187,11 @@ slicerdb/
 
 ## 9. Noch offen
 
-1. **Spoolman-VM:**
-   - IP/Hostname?
-   - SSH-Zugang (User, Key vorhanden)?
-   - OS und Docker-Version?
-2. **Spoolman-URL** (Port — Standard 7912 oder anders konfiguriert)?
-3. **Beispiel-Profildateien** in `samples/` — relevant für Phase 3+
+1. **Beispiel-Profildateien** in `samples/` — relevant für Phase 3+ (Orca-JSON-Parser)
+2. **CI-Workflow** in `.github/workflows/ci.yml` (geparkt unter `/tmp/slicerdb-hold/`)
+   — pushen sobald GitHub-PAT mit `workflow`-Scope vorliegt
+3. **Phase 1.5** (vor Phase 2): Inline-Edit auf den Listen
+4. **Phase 2:** Spoolman-Sync gegen `http://localhost:7912` (LXC), wir sind beide am Loopback dran
 
 ## 9. Quellen (recherchiert 2026-04-25)
 
