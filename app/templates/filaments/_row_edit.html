@@ -46,20 +46,20 @@
             <div class="space-y-1.5 sm:col-span-2">
                 <p class="text-sm font-medium text-slate-700">Temperaturen <span class="font-normal text-slate-400">(°C)</span></p>
                 <div class="grid grid-cols-3 gap-2 items-end">
-                    <label class="flex flex-col gap-1 text-sm">
-                        <span class="text-slate-700">Hotend min</span>
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Hotend min</span>
                         <input type="number" name="hotend_temp_min" value="{{ f.hotend_temp_min or '' }}" placeholder="190"
-                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
                     </label>
-                    <label class="flex flex-col gap-1 text-sm">
-                        <span class="text-slate-700">Hotend max</span>
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Hotend max</span>
                         <input type="number" name="hotend_temp_max" value="{{ f.hotend_temp_max or '' }}" placeholder="220"
-                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
                     </label>
-                    <label class="flex flex-col gap-1 text-sm">
-                        <span class="text-slate-700">Bett</span>
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Bett</span>
                         <input type="number" name="bed_temp" value="{{ f.bed_temp or '' }}" placeholder="60"
-                               class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
                     </label>
                 </div>
             </div>

@@ -49,9 +49,24 @@
             <div class="space-y-1.5">
                 <p class="text-sm font-medium text-slate-700">Temperaturen <span class="font-normal text-slate-400">(°C)</span></p>
                 <div class="grid grid-cols-3 gap-2 items-end">
-                    {{ field('Hotend min', 'hotend_temp_min', type='number', placeholder='190') }}
-                    {{ field('Hotend max', 'hotend_temp_max', type='number', placeholder='220') }}
-                    {{ field('Bett', 'bed_temp', type='number', placeholder='60') }}
+                    {# Inline (not via macro) so we can use compact px-2 padding
+                       and right-align the digits — gives 3 numbers room in the
+                       narrow form column. #}
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Hotend min</span>
+                        <input type="number" name="hotend_temp_min" placeholder="190"
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Hotend max</span>
+                        <input type="number" name="hotend_temp_max" placeholder="220"
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
+                    <label class="flex flex-col gap-1 text-sm min-w-0">
+                        <span class="text-slate-600">Bett</span>
+                        <input type="number" name="bed_temp" placeholder="60"
+                               class="w-full rounded border border-slate-300 bg-white px-2 py-2 text-sm tabular-nums text-right shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    </label>
                 </div>
             </div>
 
