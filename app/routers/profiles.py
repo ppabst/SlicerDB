@@ -238,7 +238,11 @@ async def upload_version(
     contents = await file.read()
     blob_path.write_bytes(contents)
 
-    raw_format = slicer.profile_format if slicer else None
+    declared_format = slicer.profile_format if slicer else None
+    # Sniff the actual file format. ZIP bundles uploaded under a slicer that
+    # claims orca-json, or vice versa, are common — trust the bytes.
+    detected_format = detect_format(blob_path)
+    raw_format = detected_format or declared_format
     file_settings = parse_settings(raw_format, blob_path)
     user_settings = parse_user_settings(settings_text)
     # User-typed entries win over what we extracted from the file.

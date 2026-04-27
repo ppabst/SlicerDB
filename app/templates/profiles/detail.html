@@ -70,33 +70,58 @@
 
                 <div class="mt-3 space-y-3">
                     {% if v.settings_json %}
-                    {# Pull inheritance markers (keys ending in __inherits__) out as a banner above the table. #}
-                    {% set inherits_pairs = [] %}
-                    {% set settings_pairs = [] %}
-                    {% for key, value in v.settings_json.items()|sort %}
-                        {% if key == '__inherits__' or key.endswith('.__inherits__') %}
-                            {% set _ = inherits_pairs.append((key, value)) %}
-                        {% else %}
-                            {% set _ = settings_pairs.append((key, value)) %}
+                    {# Split keys into:
+                       - inherits_by_section: { "process": "parent name", ... } so we know which sections are deltas
+                       - section_counts: how many real settings each section contributes
+                       - settings_pairs: (key, value, section, is_delta) tuples for the table
+                       Sections are derived from the part before the first dot in a key
+                       (orca-json single-files have no prefix → section "" / "process"). #}
+                    {% set inherits_by_section = {} %}
+                    {% for key, value in v.settings_json.items() %}
+                        {% if key == '__inherits__' %}
+                            {% set _ = inherits_by_section.update({'': value}) %}
+                        {% elif key.endswith('.__inherits__') %}
+                            {% set _ = inherits_by_section.update({key.split('.', 1)[0]: value}) %}
                         {% endif %}
                     {% endfor %}
 
-                    {% if inherits_pairs %}
-                    <div class="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                        <p class="font-semibold">⚠ Delta-Profil — du siehst nur die Abweichungen.</p>
-                        <p class="mt-1">
-                            Slicer wie OrcaSlicer und Anycubic Slicer Next speichern User-Profile als Differenz zu einem Eltern-Profil.
-                            Die echten Druckwerte ergeben sich aus dem Eltern-Profil <em>plus</em> den {{ settings_pairs|length }} Werten unten.
+                    {% set settings_pairs = [] %}
+                    {% set section_counts = {} %}
+                    {% for key, value in v.settings_json.items()|sort %}
+                        {% if not (key == '__inherits__' or key.endswith('.__inherits__')) %}
+                            {% set section = key.split('.', 1)[0] if '.' in key else '' %}
+                            {% set is_delta = section in inherits_by_section %}
+                            {% set _ = settings_pairs.append((key, value, section, is_delta)) %}
+                            {% set _ = section_counts.update({section: section_counts.get(section, 0) + 1}) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {# ----- Section status banner: show each section's inheritance state ----- #}
+                    {% if section_counts %}
+                    <div class="rounded border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700 space-y-1">
+                        <p class="font-semibold uppercase tracking-wide text-slate-500">Sektionen</p>
+                        {% for section, count in section_counts.items()|sort %}
+                            {% set parent = inherits_by_section.get(section) %}
+                            <p class="flex flex-wrap items-center gap-1.5 font-mono">
+                                {% if parent %}
+                                    <span class="text-amber-600" title="Delta-Profil — alle Werte sind Abweichungen vom Eltern-Profil">⚠</span>
+                                    <span class="font-semibold">{{ section or 'process' }}</span>
+                                    <span class="text-slate-500">erbt von</span>
+                                    <span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-900">{{ parent }}</span>
+                                    <span class="text-slate-500">— zeigt {{ count }} Abweichung{{ 'en' if count != 1 else '' }}</span>
+                                {% else %}
+                                    <span class="text-emerald-600" title="Eigenständig — alle Werte sind explizit gesetzt">✓</span>
+                                    <span class="font-semibold">{{ section or 'process' }}</span>
+                                    <span class="text-slate-500">eigenständig — {{ count }} Werte explizit</span>
+                                {% endif %}
+                            </p>
+                        {% endfor %}
+                        {% if inherits_by_section %}
+                        <p class="pt-1 text-slate-500">
+                            Tipp: Eine Section mit „erbt von" zeigt nur deine Anpassungen.
+                            Im Slicer „Save as new" ohne Inheritance erzeugt ein eigenständiges Profil.
                         </p>
-                        <ul class="mt-2 space-y-0.5 font-mono">
-                            {% for key, value in inherits_pairs %}
-                            <li>
-                                {% set section = key.split('.')[0] if '.' in key else 'process' %}
-                                <span class="font-semibold">{{ section }}</span> erbt von <span class="rounded bg-amber-100 px-1">{{ value }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        <p class="mt-2 text-amber-700/80">Tipp: In OrcaSlicer rechts auf das Profil klicken → „Save as new" ohne Inheritance erzeugt ein flaches Profil mit allen Werten.</p>
+                        {% endif %}
                     </div>
                     {% endif %}
 
@@ -105,13 +130,18 @@
                         <table class="w-full text-xs">
                             <thead class="bg-slate-50 text-left font-semibold uppercase tracking-wide text-slate-500">
                                 <tr>
+                                    <th class="px-2 py-2 w-6"></th>
                                     <th class="px-3 py-2 w-1/2">Schlüssel</th>
                                     <th class="px-3 py-2">Wert</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-mono">
-                                {% for key, value in settings_pairs %}
-                                <tr>
+                                {% for key, value, section, is_delta in settings_pairs %}
+                                <tr {% if is_delta %}class="bg-amber-50/40"{% endif %}>
+                                    <td class="px-2 py-1.5 text-center {% if is_delta %}text-amber-600{% else %}text-slate-300{% endif %}"
+                                        title="{% if is_delta %}Abweichung vom Eltern-Profil ‚{{ inherits_by_section.get(section) }}'{% else %}Wert ist explizit gesetzt (kein Eltern-Profil){% endif %}">
+                                        {% if is_delta %}⚠{% endif %}
+                                    </td>
                                     <td class="px-3 py-1.5 text-slate-700">{{ key }}</td>
                                     <td class="px-3 py-1.5 text-slate-900 break-all">
                                         {%- if value is mapping or value is iterable and value is not string -%}
