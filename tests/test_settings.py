@@ -29,7 +29,7 @@ def test_save_spoolman_persists_to_db(client: TestClient) -> None:
         "/settings/spoolman",
         data={
             "spoolman_url": "http://my-spoolman:7912",
-            "spoolman_public_url": "http://192.168.1.10:7912/",
+            "spoolman_public_url": "http://192.0.2.10:7912/",
             "auto_sync": "1",
             "interval_hours": 2,
         },
@@ -41,7 +41,7 @@ def test_save_spoolman_persists_to_db(client: TestClient) -> None:
         row = get_app_settings(s)
         assert row.spoolman_url == "http://my-spoolman:7912"
         # Trailing slash gets stripped — link templates do their own join.
-        assert row.spoolman_public_url == "http://192.168.1.10:7912"
+        assert row.spoolman_public_url == "http://192.0.2.10:7912"
         assert row.spoolman_auto_sync is True
         assert row.spoolman_sync_interval_seconds == 2 * 3600
 

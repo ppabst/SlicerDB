@@ -221,10 +221,10 @@ def _make_synced_filament(client: TestClient, *, public_url: str | None) -> None
 
 
 def test_synced_row_shows_link_when_public_url_set(client: TestClient) -> None:
-    _make_synced_filament(client, public_url="http://192.168.1.5:7912")
+    _make_synced_filament(client, public_url="http://192.0.2.5:7912")
     body = client.get("/filaments").text
     assert "→ Spoolman" in body
-    assert 'href="http://192.168.1.5:7912/filament/show/42"' in body
+    assert 'href="http://192.0.2.5:7912/filament/show/42"' in body
     assert 'target="_blank"' in body
 
 
@@ -235,7 +235,7 @@ def test_synced_row_uses_url_when_no_public_url(client: TestClient) -> None:
     with Session(get_engine()) as s:
         update_spoolman_settings(
             s,
-            url="http://192.168.1.42:7912",
+            url="http://192.0.2.42:7912",
             public_url=None,
             auto_sync=True,
             interval_seconds=21600,
@@ -251,7 +251,7 @@ def test_synced_row_uses_url_when_no_public_url(client: TestClient) -> None:
         s.commit()
 
     body = client.get("/filaments").text
-    assert 'href="http://192.168.1.42:7912/filament/show/7"' in body
+    assert 'href="http://192.0.2.42:7912/filament/show/7"' in body
 
 
 def test_synced_row_skips_link_for_loopback_url(client: TestClient) -> None:

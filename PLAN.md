@@ -1,7 +1,7 @@
 # SlicerDB — Implementierungsplan
 
 **Stand:** 2026-04-27
-**Status:** Phase 0 + 1 fertig & deployed auf Spoolman-VM (<your-host>:8080)
+**Status:** Phase 0 + 1 fertig & deployed auf der Spoolman-VM (interner LXC, Port 8080)
 
 ## 1. Ziel
 
@@ -136,7 +136,7 @@ slicerdb/
 - Aktive Version markieren, Versionshistorie pro Profil ✅
 - Bewertung pro Version (gut/schlecht/ungetestet) ✅
 - 9 Tests grün, ruff clean
-- Deployed auf Spoolman-LXC (<your-host>:8080), Docker 29.4.1, network_mode:host
+- Deployed auf Spoolman-LXC, Docker 29.4.1, network_mode:host
 
 **Inline-Edit für CRUD-Entitäten kommt in Phase 1.5.**
 
