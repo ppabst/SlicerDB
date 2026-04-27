@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Test fixtures.
 
 Each test module gets a fresh SQLite file in a tempdir, so tests don't see each

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Best-effort parsers that pull a flat ``key → value`` map out of a slicer
 profile file.
 

@@ -11,6 +11,22 @@ Versionierte Verwaltung von 3D-Drucker-Slicer-Profilen pro Drucker × Düse × B
 > **Status:** Phase 1.6 läuft. Siehe [PLAN.md](PLAN.md) für die Roadmap.
 > Repository und Docker-Image heißen aus historischen Gründen weiterhin `SlicerDB`/`slicerdb` — die Marke ist Slicekeeper.
 
+---
+
+## Author / Lizenz
+
+Slicekeeper ist von **LennyK** entwickelt und veröffentlicht.
+
+```
+Copyright (C) 2026 LennyK
+Quelle:  https://github.com/ppabst/SlicerDB
+Lizenz:  GPL-3.0-or-later
+```
+
+Jede Quelldatei trägt SPDX-Header (`SPDX-FileCopyrightText: 2026 LennyK` und `SPDX-License-Identifier: GPL-3.0-or-later`). Siehe [`NOTICE`](NOTICE) und [`LICENSE`](LICENSE).
+
+**Kommerzieller Wiederverkauf** dieser Software — ganz oder in Teilen — ohne Einhaltung der GPL-3.0-Bedingungen ist unzulässig und verletzt das Urheberrecht. Forks und Modifikationen sind willkommen, müssen aber selbst unter GPL-3.0 stehen und die Autorenangaben erhalten.
+
 ## Stack
 
 - **Backend:** FastAPI + SQLModel (auf SQLAlchemy 2.0 + Pydantic v2)

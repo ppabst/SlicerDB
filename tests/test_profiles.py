@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """End-to-end tests for PrintProfile + ProfileVersion lifecycle."""
 
 import io

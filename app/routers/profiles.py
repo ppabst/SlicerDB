@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Print profiles and their versioned settings.
 
 A PrintProfile is the Drucker × Düse × Filament × Slicer × Qualität combination.

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel

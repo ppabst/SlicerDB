@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """SQLModel database models.
 
 Public surface: import all classes from this package so Alembic's autogenerate

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -41,7 +43,14 @@ app.include_router(profiles.router)
 
 @app.get("/healthz")
 async def healthz() -> dict[str, str]:
-    return {"status": "ok", "version": __version__}
+    return {
+        "status": "ok",
+        "version": __version__,
+        "name": "Slicekeeper",
+        "author": "LennyK",
+        "license": "GPL-3.0-or-later",
+        "source": "https://github.com/ppabst/SlicerDB",
+    }
 
 
 @app.get("/", response_class=HTMLResponse)

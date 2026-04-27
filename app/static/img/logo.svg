@@ -1,4 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" fill="none" aria-label="Slicekeeper">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" viewBox="0 0 48 36" fill="none" aria-label="Slicekeeper">
+  <metadata>
+    <rdf:RDF>
+      <rdf:Description rdf:about="">
+        <dc:title>Slicekeeper Logo</dc:title>
+        <dc:creator>LennyK</dc:creator>
+        <dc:rights>Copyright (C) 2026 LennyK</dc:rights>
+        <dc:source>https://github.com/ppabst/SlicerDB</dc:source>
+        <dc:identifier>SPDX-License-Identifier: GPL-3.0-or-later</dc:identifier>
+      </rdf:Description>
+    </rdf:RDF>
+  </metadata>
   <circle cx="11" cy="18" r="8" stroke="currentColor" stroke-width="3" fill="none"/>
   <circle cx="11" cy="18" r="2.5" fill="currentColor"/>
   <line x1="19" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>

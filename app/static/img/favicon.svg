@@ -1,4 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" viewBox="0 0 32 32" fill="none">
+  <metadata>
+    <rdf:RDF>
+      <rdf:Description rdf:about="">
+        <dc:title>Slicekeeper Favicon</dc:title>
+        <dc:creator>LennyK</dc:creator>
+        <dc:rights>Copyright (C) 2026 LennyK</dc:rights>
+        <dc:identifier>SPDX-License-Identifier: GPL-3.0-or-later</dc:identifier>
+      </rdf:Description>
+    </rdf:RDF>
+  </metadata>
   <!-- Compact square fit so the key reads at 16 px favicon size -->
   <circle cx="9.5" cy="16" r="6.5" stroke="#10b981" stroke-width="2.6" fill="none"/>
   <circle cx="9.5" cy="16" r="2.2"  fill="#10b981"/>

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Alembic environment.
 
 Reads the DB URL from app.config (overridable via SLICERDB_DATA_DIR) and uses

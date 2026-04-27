@@ -1,0 +1,28 @@
+Slicekeeper
+Die Datenbank für deine Slicer Profile
+
+Copyright (C) 2026 LennyK
+Repository: https://github.com/ppabst/SlicerDB
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version, as set out in LICENSE.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+Commercial resale of this software, in whole or in part, in any form
+that does not preserve the GPL-3.0-or-later license and these authorship
+notices, is a violation of copyright and the license terms.
+
+Every source file in this project is tagged with:
+
+    SPDX-FileCopyrightText: 2026 LennyK
+    SPDX-License-Identifier: GPL-3.0-or-later
+
+These tags are the canonical authorship + license markers for this
+project. Removing or altering them does not change the legal status of
+the underlying work.

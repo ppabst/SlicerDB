@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
 """add build_plate table and FK on print_profile
 
 Revision ID: fd7f67c58b1e

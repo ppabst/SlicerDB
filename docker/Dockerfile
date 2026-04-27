@@ -1,4 +1,8 @@
 # syntax=docker/dockerfile:1.7
+# SPDX-FileCopyrightText: 2026 LennyK
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Slicekeeper — Die Datenbank für deine Slicer Profile
+# https://github.com/ppabst/SlicerDB
 
 # ---------- Stage 1: assets (Tailwind v4 + HTMX, no Node) ----------
 FROM debian:bookworm-slim AS assets

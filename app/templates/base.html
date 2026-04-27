@@ -1,8 +1,19 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
 <!DOCTYPE html>
+<!--
+    Slicekeeper — Die Datenbank für deine Slicer Profile
+    Copyright (C) 2026 LennyK · GPL-3.0-or-later
+    Source: https://github.com/ppabst/SlicerDB
+    SPDX-FileCopyrightText: 2026 LennyK
+    SPDX-License-Identifier: GPL-3.0-or-later
+-->
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="LennyK">
+    <meta name="copyright" content="© 2026 LennyK · GPL-3.0-or-later">
+    <meta name="generator" content="Slicekeeper by LennyK — https://github.com/ppabst/SlicerDB">
     <title>{% block title %}Slicekeeper{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='img/favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/output.css') }}">
@@ -51,7 +62,9 @@
     </main>
 
     <footer class="mt-20 border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        Slicekeeper · GPL-3.0 · self-hosted
+        <span>Slicekeeper · &copy; 2026 <strong class="font-semibold text-slate-700">LennyK</strong> · GPL-3.0 · self-hosted</span>
+        <span class="mx-1 text-slate-300">·</span>
+        <a href="https://github.com/ppabst/SlicerDB" class="hover:text-slate-700" rel="noopener">Source</a>
     </footer>
 </body>
 </html>
