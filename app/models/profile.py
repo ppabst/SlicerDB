@@ -7,6 +7,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from app.models.base import TimestampMixin, utcnow
 
 if TYPE_CHECKING:
+    from app.models.build_plate import BuildPlate
     from app.models.filament import Filament
     from app.models.nozzle import Nozzle
     from app.models.printer import Printer
@@ -34,6 +35,7 @@ class PrintProfile(PrintProfileBase, TimestampMixin, table=True):
     nozzle_id: int = Field(foreign_key="nozzle.id", index=True)
     filament_id: int = Field(foreign_key="filament.id", index=True)
     slicer_id: int = Field(foreign_key="slicer.id", index=True)
+    build_plate_id: int | None = Field(default=None, foreign_key="build_plate.id", index=True)
     # Soft pointer to the currently active version; FK is intentionally not
     # declared at the DB level to avoid a circular constraint with
     # profile_version.profile_id. App code maintains referential integrity.
@@ -43,6 +45,7 @@ class PrintProfile(PrintProfileBase, TimestampMixin, table=True):
     nozzle: "Nozzle" = Relationship(back_populates="profiles")
     filament: "Filament" = Relationship(back_populates="profiles")
     slicer: "Slicer" = Relationship(back_populates="profiles")
+    build_plate: "BuildPlate" = Relationship(back_populates="profiles")
     versions: list["ProfileVersion"] = Relationship(
         back_populates="profile",
         sa_relationship_kwargs={
@@ -58,6 +61,7 @@ class PrintProfileCreate(PrintProfileBase):
     nozzle_id: int
     filament_id: int
     slicer_id: int
+    build_plate_id: int | None = None
 
 
 class PrintProfileUpdate(SQLModel):
@@ -68,6 +72,7 @@ class PrintProfileUpdate(SQLModel):
     nozzle_id: int | None = None
     filament_id: int | None = None
     slicer_id: int | None = None
+    build_plate_id: int | None = None
 
 
 class PrintProfileRead(PrintProfileBase):

@@ -15,6 +15,7 @@
             {{ "%.2f"|format(nozzle.diameter_mm) }} mm {{ nozzle.material }} <span class="text-slate-300">·</span>
             {{ filament.manufacturer }} {{ filament.name }} ({{ filament.material }}) <span class="text-slate-300">·</span>
             {{ slicer.name }}{% if slicer.version %} {{ slicer.version }}{% endif %}
+            {%- if build_plate %} <span class="text-slate-300">·</span> {{ build_plate.name }}{% if build_plate.bed_temp_min and build_plate.bed_temp_max %} <span class="text-slate-400">({{ build_plate.bed_temp_min }}–{{ build_plate.bed_temp_max }} °C)</span>{% endif %}{% endif %}
         </p>
         <p class="mt-1 text-xs text-slate-500">
             Layer {{ "%.2f"|format(profile.layer_height_mm) }} mm <span class="text-slate-300">·</span>
@@ -25,67 +26,129 @@
 </div>
 
 <div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
-    <section>
-        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Versionen</h2>
+    <section class="space-y-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-500">Versionen</h2>
+
         {% if versions %}
-        <div class="space-y-3">
-            {% for v in versions %}
-            <article class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm {% if profile.active_version_id == v.id %}ring-2 ring-emerald-400{% endif %}">
-                <header class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="font-semibold">v{{ v.version_no }}</span>
-                        {% if profile.active_version_id == v.id %}
-                            <span class="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">aktiv</span>
-                        {% endif %}
-                        {% if v.rating == 'good' %}
-                            <span class="inline-flex items-center rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">gut</span>
-                        {% elif v.rating == 'bad' %}
-                            <span class="inline-flex items-center rounded bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">schlecht</span>
-                        {% elif v.rating == 'untested' %}
-                            <span class="inline-flex items-center rounded bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">ungetestet</span>
-                        {% endif %}
+        {% for v in versions %}
+        <article class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm {% if profile.active_version_id == v.id %}ring-2 ring-emerald-400{% endif %}">
+            <header class="flex items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold">v{{ v.version_no }}</span>
+                    {% if profile.active_version_id == v.id %}
+                        <span class="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">aktiv</span>
+                    {% endif %}
+                    {% if v.rating == 'good' %}
+                        <span class="inline-flex items-center rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">gut</span>
+                    {% elif v.rating == 'bad' %}
+                        <span class="inline-flex items-center rounded bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">schlecht</span>
+                    {% elif v.rating == 'untested' %}
+                        <span class="inline-flex items-center rounded bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">ungetestet</span>
+                    {% endif %}
+                    {% if v.settings_json %}
+                        <span class="inline-flex items-center rounded bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">{{ v.settings_json|length }} Settings</span>
+                    {% endif %}
+                </div>
+                <time class="text-xs text-slate-500">{{ v.created_at.strftime('%Y-%m-%d %H:%M') }}</time>
+            </header>
+
+            {% if v.change_note %}
+            <p class="mt-2 text-sm text-slate-700">{{ v.change_note }}</p>
+            {% endif %}
+            {% if v.rating_note %}
+            <p class="mt-1 text-xs italic text-slate-500">{{ v.rating_note }}</p>
+            {% endif %}
+
+            {# ----- Settings section (collapsible) ----- #}
+            {% set settings_id = 'settings-v' ~ v.id %}
+            <details class="mt-3 group">
+                <summary class="cursor-pointer text-xs font-medium text-slate-600 hover:text-slate-900 select-none">
+                    <span class="group-open:hidden">▸ Settings anzeigen</span>
+                    <span class="hidden group-open:inline">▾ Settings ausblenden</span>
+                </summary>
+
+                <div class="mt-3 space-y-3">
+                    {% if v.settings_json %}
+                    <div class="overflow-hidden rounded border border-slate-200">
+                        <table class="w-full text-xs">
+                            <thead class="bg-slate-50 text-left font-semibold uppercase tracking-wide text-slate-500">
+                                <tr>
+                                    <th class="px-3 py-2 w-1/2">Schlüssel</th>
+                                    <th class="px-3 py-2">Wert</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-mono">
+                                {% for key, value in v.settings_json.items()|sort %}
+                                <tr>
+                                    <td class="px-3 py-1.5 text-slate-700">{{ key }}</td>
+                                    <td class="px-3 py-1.5 text-slate-900 break-all">
+                                        {%- if value is mapping or value is iterable and value is not string -%}
+                                            {{ value|tojson }}
+                                        {%- else -%}
+                                            {{ value }}
+                                        {%- endif -%}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <time class="text-xs text-slate-500">{{ v.created_at.strftime('%Y-%m-%d %H:%M') }}</time>
-                </header>
-
-                {% if v.change_note %}
-                <p class="mt-2 text-sm text-slate-700">{{ v.change_note }}</p>
-                {% endif %}
-                {% if v.rating_note %}
-                <p class="mt-1 text-xs italic text-slate-500">{{ v.rating_note }}</p>
-                {% endif %}
-
-                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
-                    {% if v.raw_blob_path %}
-                    <a href="/profiles/{{ profile.id }}/versions/{{ v.id }}/download"
-                       class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
-                        ⬇ {{ v.raw_filename or 'Datei' }} ({{ v.raw_format or '?' }})
-                    </a>
+                    {% else %}
+                    <p class="rounded border border-dashed border-slate-300 p-3 text-xs text-slate-500">
+                        Keine strukturierten Settings hinterlegt.
+                        {% if v.raw_format not in ('orca-json', 'anycubic-bundle') %}
+                            Auto-Parsing für <code class="rounded bg-slate-100 px-1">{{ v.raw_format or '?' }}</code> ist noch nicht aktiv — du kannst die Werte manuell eintragen.
+                        {% endif %}
+                    </p>
                     {% endif %}
 
-                    {% if profile.active_version_id != v.id %}
-                    <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/activate">
-                        <button class="inline-flex items-center rounded border border-emerald-200 px-2.5 py-1 font-medium text-emerald-700 hover:bg-emerald-50">
-                            Aktiv setzen
-                        </button>
-                    </form>
-                    {% endif %}
-
-                    <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/rate" class="flex items-center gap-1">
-                        <select name="rating" class="rounded border border-slate-300 px-2 py-1 text-xs">
-                            <option value="good" {% if v.rating == 'good' %}selected{% endif %}>gut</option>
-                            <option value="bad" {% if v.rating == 'bad' %}selected{% endif %}>schlecht</option>
-                            <option value="untested" {% if v.rating == 'untested' %}selected{% endif %}>ungetestet</option>
-                        </select>
-                        <input name="rating_note" value="{{ v.rating_note or '' }}" placeholder="Bewertung-Notiz" class="w-40 rounded border border-slate-300 px-2 py-1 text-xs">
-                        <button class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
-                            Bewerten
+                    <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/settings"
+                          class="space-y-2">
+                        <label class="block text-xs font-medium text-slate-600">
+                            Settings bearbeiten <span class="font-normal text-slate-400">(eine Zeile pro Eintrag, <code>key = value</code>)</span>
+                        </label>
+                        <textarea name="settings_text" rows="6"
+                                  class="w-full rounded border border-slate-300 bg-white px-3 py-2 font-mono text-xs shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                                  placeholder="layer_height = 0.16&#10;sparse_infill_density = 15%&#10;outer_wall_speed = 80">{% if v.settings_json %}{% for key, value in v.settings_json.items()|sort %}{{ key }} = {%- if value is mapping or value is iterable and value is not string -%}{{ value|tojson }}{%- else -%}{{ value }}{%- endif %}
+{% endfor %}{% endif %}</textarea>
+                        <button class="inline-flex items-center rounded border border-slate-300 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                            Settings speichern
                         </button>
                     </form>
                 </div>
-            </article>
-            {% endfor %}
-        </div>
+            </details>
+
+            {# ----- Action row ----- #}
+            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                {% if v.raw_blob_path %}
+                <a href="/profiles/{{ profile.id }}/versions/{{ v.id }}/download"
+                   class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
+                    ⬇ {{ v.raw_filename or 'Datei' }} ({{ v.raw_format or '?' }})
+                </a>
+                {% endif %}
+
+                {% if profile.active_version_id != v.id %}
+                <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/activate">
+                    <button class="inline-flex items-center rounded border border-emerald-200 px-2.5 py-1 font-medium text-emerald-700 hover:bg-emerald-50">
+                        Aktiv setzen
+                    </button>
+                </form>
+                {% endif %}
+
+                <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/rate" class="flex items-center gap-1">
+                    <select name="rating" class="rounded border border-slate-300 px-2 py-1 text-xs">
+                        <option value="good" {% if v.rating == 'good' %}selected{% endif %}>gut</option>
+                        <option value="bad" {% if v.rating == 'bad' %}selected{% endif %}>schlecht</option>
+                        <option value="untested" {% if v.rating == 'untested' %}selected{% endif %}>ungetestet</option>
+                    </select>
+                    <input name="rating_note" value="{{ v.rating_note or '' }}" placeholder="Notiz" class="w-32 rounded border border-slate-300 px-2 py-1 text-xs">
+                    <button class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
+                        Bewerten
+                    </button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
         {% else %}
         <div class="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">
             Noch keine Version hochgeladen.
@@ -103,13 +166,25 @@
                 <span class="font-medium text-slate-700">Slicer-Datei <span class="text-rose-500">*</span></span>
                 <input type="file" name="file" required
                        class="text-sm file:mr-3 file:rounded file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-emerald-700 hover:file:bg-emerald-100">
-                <span class="text-xs text-slate-500">Slicer-Format: <code class="rounded bg-slate-100 px-1">{{ slicer.profile_format }}</code></span>
+                <span class="text-xs text-slate-500">
+                    Slicer-Format: <code class="rounded bg-slate-100 px-1">{{ slicer.profile_format }}</code>
+                    {% if slicer.profile_format in ('orca-json', 'anycubic-bundle') %}
+                    <span class="text-emerald-600">· wird automatisch geparst</span>
+                    {% endif %}
+                </span>
             </label>
 
             <label class="flex flex-col gap-1 text-sm">
                 <span class="font-medium text-slate-700">Was hat sich geändert?</span>
-                <textarea name="change_note" rows="3" placeholder="z.B. Retraction 0.8 → 1.2, Innenwand-Speed -10%"
+                <textarea name="change_note" rows="2" placeholder="z.B. Retraction 0.8 → 1.2, Innenwand-Speed -10%"
                           class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"></textarea>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Settings manuell ergänzen <span class="font-normal text-slate-400">(optional)</span></span>
+                <textarea name="settings_text" rows="6" placeholder="layer_height = 0.16&#10;outer_wall_speed = 80&#10;# Kommentare mit # ignoriert"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 font-mono text-xs shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"></textarea>
+                <span class="text-xs text-slate-500">Eine Zeile pro Eintrag (<code>key = value</code>). Überschreibt Auto-Parse-Werte bei gleichem Key.</span>
             </label>
 
             <label class="flex flex-col gap-1 text-sm">

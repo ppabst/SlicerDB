@@ -16,6 +16,7 @@ from sqlmodel import Session, func, select
 from app.config import settings
 from app.db import get_session
 from app.models import (
+    BuildPlate,
     Filament,
     Nozzle,
     Printer,
@@ -23,6 +24,7 @@ from app.models import (
     ProfileVersion,
     Slicer,
 )
+from app.services.slicer_parsers import parse_settings, parse_user_settings
 from app.templating import templates
 
 ALLOWED_RATINGS = {"good", "bad", "untested"}
@@ -96,6 +98,9 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
         select(Filament).order_by(Filament.manufacturer, Filament.name)
     ).all()
     slicers = session.exec(select(Slicer).order_by(Slicer.name)).all()
+    build_plates = session.exec(
+        select(BuildPlate).order_by(BuildPlate.manufacturer, BuildPlate.name)
+    ).all()
     return templates.TemplateResponse(
         request,
         "profiles/index.html",
@@ -105,6 +110,7 @@ def index(request: Request, session: Session = Depends(get_session)) -> HTMLResp
             "nozzles": nozzles,
             "filaments": filaments,
             "slicers": slicers,
+            "build_plates": build_plates,
         },
     )
 
@@ -119,6 +125,7 @@ def create(
     slicer_id: int = Form(),
     layer_height_mm: float = Form(gt=0, le=2.0),
     quality_label: str = Form(default="Standard"),
+    build_plate_id: int | None = Form(default=None),
     notes: str | None = Form(default=None),
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
@@ -131,6 +138,8 @@ def create(
         raise HTTPException(status_code=400, detail="Unknown filament_id")
     if session.get(Slicer, slicer_id) is None:
         raise HTTPException(status_code=400, detail="Unknown slicer_id")
+    if build_plate_id is not None and session.get(BuildPlate, build_plate_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown build_plate_id")
 
     profile = PrintProfile(
         name=name.strip(),
@@ -138,6 +147,7 @@ def create(
         nozzle_id=nozzle_id,
         filament_id=filament_id,
         slicer_id=slicer_id,
+        build_plate_id=build_plate_id,
         layer_height_mm=layer_height_mm,
         quality_label=quality_label.strip() or "Standard",
         notes=(notes or None),
@@ -179,6 +189,11 @@ def detail(
     nozzle = session.get(Nozzle, profile.nozzle_id)
     filament = session.get(Filament, profile.filament_id)
     slicer = session.get(Slicer, profile.slicer_id)
+    build_plate = (
+        session.get(BuildPlate, profile.build_plate_id)
+        if profile.build_plate_id
+        else None
+    )
     versions = session.exec(
         select(ProfileVersion)
         .where(ProfileVersion.profile_id == profile_id)
@@ -193,6 +208,7 @@ def detail(
             "nozzle": nozzle,
             "filament": filament,
             "slicer": slicer,
+            "build_plate": build_plate,
             "versions": versions,
         },
     )
@@ -206,6 +222,7 @@ async def upload_version(
     change_note: str | None = Form(default=None),
     rating: str | None = Form(default=None),
     rating_note: str | None = Form(default=None),
+    settings_text: str | None = Form(default=None),
     session: Session = Depends(get_session),
 ) -> HTMLResponse:
     profile = _load_profile(session, profile_id)
@@ -219,6 +236,12 @@ async def upload_version(
     contents = await file.read()
     blob_path.write_bytes(contents)
 
+    raw_format = slicer.profile_format if slicer else None
+    file_settings = parse_settings(raw_format, blob_path)
+    user_settings = parse_user_settings(settings_text)
+    # User-typed entries win over what we extracted from the file.
+    merged_settings = {**file_settings, **user_settings} or None
+
     version = ProfileVersion(
         profile_id=profile_id,
         version_no=version_no,
@@ -226,8 +249,9 @@ async def upload_version(
         rating=(rating or None),
         rating_note=(rating_note or None),
         raw_filename=raw_name,
-        raw_format=slicer.profile_format if slicer else None,
+        raw_format=raw_format,
         raw_blob_path=str(blob_path.relative_to(settings.files_dir)),
+        settings_json=merged_settings,
     )
     session.add(version)
 
@@ -299,6 +323,29 @@ def rate_version(
         raise HTTPException(status_code=404, detail="Version not found")
     version.rating = rating
     version.rating_note = (rating_note or None)
+    session.add(version)
+    session.commit()
+    return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)
+
+
+@router.post("/{profile_id}/versions/{version_id}/settings")
+def update_settings(
+    profile_id: int,
+    version_id: int,
+    settings_text: str = Form(default=""),
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    """Replace a version's structured settings with whatever the user typed.
+
+    The textarea is the source of truth here — we don't merge with the previous
+    settings_json. If the user wants to keep auto-parsed values, they should
+    leave them in the textarea.
+    """
+    version = session.get(ProfileVersion, version_id)
+    if version is None or version.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    parsed = parse_user_settings(settings_text)
+    version.settings_json = parsed or None
     session.add(version)
     session.commit()
     return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)

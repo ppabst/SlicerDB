@@ -16,6 +16,13 @@ def test_index_renders(client: TestClient) -> None:
 
 
 def test_static_pages_render(client: TestClient) -> None:
-    for path in ["/printers", "/nozzles", "/slicers", "/filaments", "/profiles"]:
+    for path in [
+        "/printers",
+        "/nozzles",
+        "/slicers",
+        "/filaments",
+        "/buildplates",
+        "/profiles",
+    ]:
         response = client.get(path)
         assert response.status_code == 200, f"{path} returned {response.status_code}"

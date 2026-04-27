@@ -5,6 +5,7 @@ sees them when introspecting metadata.
 """
 
 from app.models.base import TimestampMixin
+from app.models.build_plate import BuildPlate
 from app.models.filament import Filament
 from app.models.nozzle import Nozzle
 from app.models.printer import Printer
@@ -12,6 +13,7 @@ from app.models.profile import PrintProfile, ProfileVersion
 from app.models.slicer import Slicer
 
 __all__ = [
+    "BuildPlate",
     "Filament",
     "Nozzle",
     "PrintProfile",

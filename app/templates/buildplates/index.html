@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select_field, textarea_field, submit_btn, page_header %}
+
+{% block title %}Bauplatten · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Bauplatten', 'Druckbett-Oberflächen — pro Profil eine zuordnen für korrekte Bett-Temperatur und Adhäsion.') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="buildplate-list">
+            {% include "buildplates/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neue Bauplatte</h2>
+        <form hx-post="/buildplates"
+              hx-target="#buildplate-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ field('Name', 'name', required=True, placeholder='z.B. Bambu Cool Plate') }}
+            {{ select_field('Oberfläche', 'surface_type', surface_types|zip(surface_types)|list, required=True) }}
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Finish</span>
+                <select name="finish" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    <option value="">— offen —</option>
+                    {% for f in finishes %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+                </select>
+            </label>
+            {{ field('Hersteller', 'manufacturer', placeholder='Bambu Lab / Anycubic / Prusa / Generic') }}
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {{ field('Bett °C min', 'bed_temp_min', type='number', placeholder='55') }}
+                {{ field('Bett °C max', 'bed_temp_max', type='number', placeholder='100') }}
+            </div>
+            {{ field('Kompatible Materialien', 'compatible_materials', placeholder='PLA, PETG, ABS') }}
+            {{ textarea_field('Notizen', 'notes') }}
+            {{ submit_btn() }}
+        </form>
+    </section>
+</div>
+{% endblock %}

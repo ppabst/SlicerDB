@@ -6,7 +6,13 @@ from app.db import get_session
 from app.models import Slicer
 from app.templating import templates
 
-PROFILE_FORMATS = ("orca-json", "prusa-ini", "cura-profile", "other")
+PROFILE_FORMATS = (
+    "orca-json",
+    "anycubic-bundle",
+    "cura-profile",
+    "prusa-ini",
+    "other",
+)
 
 router = APIRouter(prefix="/slicers", tags=["slicers"])
 

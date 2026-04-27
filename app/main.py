@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from app import __version__
 from app.config import settings
 from app.db import run_migrations
-from app.routers import filaments, nozzles, printers, profiles, slicers
+from app.routers import buildplates, filaments, nozzles, printers, profiles, slicers
 from app.templating import templates
 
 BASE_DIR = Path(__file__).parent
@@ -35,6 +35,7 @@ app.include_router(printers.router)
 app.include_router(nozzles.router)
 app.include_router(slicers.router)
 app.include_router(filaments.router)
+app.include_router(buildplates.router)
 app.include_router(profiles.router)
 
 
