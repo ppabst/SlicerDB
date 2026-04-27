@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 36" fill="none" aria-label="Slicekeeper logo, key with layered teeth">
+  <!-- Key bow on the left, shaft to the right with layer-line teeth ("keeper" pun) -->
+  <circle cx="11" cy="18" r="8" stroke="#10b981" stroke-width="3" fill="none"/>
+  <circle cx="11" cy="18" r="2.5" fill="#10b981"/>
+  <line x1="19" y1="18" x2="42" y2="18" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- teeth are the "layers" — each one offset like a 3D-printed line -->
+  <rect x="30" y="20" width="3.6" height="6" rx="1" fill="#10b981"/>
+  <rect x="36" y="20" width="3.6" height="4" rx="1" fill="#10b981"/>
+  <rect x="42" y="20" width="3"   height="6" rx="1" fill="#10b981"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none" aria-label="Slicekeeper logo, layered shield">
+  <!-- A shield (the "keeper") with 4 print layers inside -->
+  <path d="M18 2.5 L31 6.5 V18 C31 26 25 31.5 18 33.5 C11 31.5 5 26 5 18 V6.5 Z"
+        fill="#10b981" stroke="#047857" stroke-width="1.4"/>
+  <line x1="11" y1="12" x2="25" y2="12" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.95"/>
+  <line x1="11" y1="17" x2="25" y2="17" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.95"/>
+  <line x1="11" y1="22" x2="25" y2="22" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.95"/>
+  <circle cx="18" cy="27.5" r="1.4" fill="#ffffff"/>
+</svg>

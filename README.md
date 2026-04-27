@@ -1,8 +1,15 @@
-# SlicerDB
+<p align="left">
+  <img src="app/static/img/logo.svg" width="120" alt="Slicekeeper">
+</p>
 
-Versionierte Verwaltung von 3D-Drucker-Slicer-Profilen — pro Drucker × Düse × Qualitätsstufe × Filament × Slicer, mit Original-Datei-Backup und Spoolman-Anbindung.
+# Slicekeeper
 
-> **Status:** Phase 0 (Setup). Siehe [PLAN.md](PLAN.md) für die Roadmap.
+**Die Datenbank für deine Slicer Profile.**
+
+Versionierte Verwaltung von 3D-Drucker-Slicer-Profilen pro Drucker × Düse × Bauplatte × Qualität × Filament × Slicer — mit Auto-Parser für OrcaSlicer-JSON und Anycubic-Bundles, Original-Datei-Backup und Spoolman-Anbindung.
+
+> **Status:** Phase 1.6 läuft. Siehe [PLAN.md](PLAN.md) für die Roadmap.
+> Repository und Docker-Image heißen aus historischen Gründen weiterhin `SlicerDB`/`slicerdb` — die Marke ist Slicekeeper.
 
 ## Stack
 

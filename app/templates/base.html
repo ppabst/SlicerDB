@@ -3,16 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SlicerDB{% endblock %}</title>
+    <title>{% block title %}Slicekeeper{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='img/favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/output.css') }}">
     <script src="{{ url_for('static', path='js/htmx.min.js') }}" defer></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
     <header class="border-b border-slate-200 bg-white">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-            <a href="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
-                SlicerDB
+            <a href="/" class="flex items-center gap-2.5 text-slate-900">
+                <svg viewBox="0 0 48 36" fill="none" aria-label="Slicekeeper"
+                     class="h-7 w-auto text-emerald-600">
+                    <circle cx="11" cy="18" r="8" stroke="currentColor" stroke-width="3" fill="none"/>
+                    <circle cx="11" cy="18" r="2.5" fill="currentColor"/>
+                    <line x1="19" y1="18" x2="42" y2="18" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    <rect x="30" y="20" width="3.6" height="6" rx="1" fill="currentColor"/>
+                    <rect x="36" y="20" width="3.6" height="4" rx="1" fill="currentColor"/>
+                    <rect x="42" y="20" width="3"   height="6" rx="1" fill="currentColor"/>
+                </svg>
+                <span class="flex flex-col leading-tight">
+                    <span class="text-lg font-semibold tracking-tight">Slicekeeper</span>
+                    <span class="text-[11px] font-normal text-slate-500">Die Datenbank für deine Slicer Profile</span>
+                </span>
             </a>
             <nav class="flex items-center gap-5 text-sm">
                 {% set nav = [
@@ -39,7 +51,7 @@
     </main>
 
     <footer class="mt-20 border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        SlicerDB · GPL-3.0 · self-hosted
+        Slicekeeper · GPL-3.0 · self-hosted
     </footer>
 </body>
 </html>

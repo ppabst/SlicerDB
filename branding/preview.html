@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Slicekeeper — Logo-Vorschläge</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+         background: #f8fafc; color: #0f172a; margin: 0; padding: 32px 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  p.tag { color: #64748b; font-size: 14px; margin: 0 0 28px; }
+  .grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); max-width: 1100px; }
+  .card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; padding: 18px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .card h2 { margin: 0 0 4px; font-size: 15px; }
+  .card p { margin: 0 0 16px; font-size: 13px; color: #475569; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; }
+  .row > div { padding: 24px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .row > div.light { background: #f1f5f9; }
+  .row > div.dark { background: #0f172a; color: #fff; }
+  .lockup { display: flex; align-items: center; gap: 10px; }
+  .lockup span { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; }
+  .row svg { width: 36px; height: 36px; }
+  .icon-only svg { width: 56px; height: 56px; }
+  footer { color: #94a3b8; font-size: 12px; margin-top: 32px; }
+</style>
+</head>
+<body>
+  <h1>Slicekeeper — drei Logo-Varianten</h1>
+  <p class="tag">Jeweils in Light + Dark + Lockup mit Wortmarke. Klick auf eine Option im Chat ist genug — ich integriere die gewählte direkt in Header, Favicon und README.</p>
+
+  <div class="grid">
+
+    <article class="card">
+      <h2>A — Layered S</h2>
+      <p>Buchstabe „S" aus 5 Druckschichten. Sehr clean, funktioniert auch als Favicon im 16 px-Bereich.</p>
+      <div class="row">
+        <div class="light icon-only"><img src="logo-stacks.svg" alt=""></div>
+        <div class="dark icon-only" style="background:#0f172a"><img src="logo-stacks.svg" alt=""></div>
+      </div>
+      <div style="margin-top:8px" class="row">
+        <div class="light"><span class="lockup"><img src="logo-stacks.svg" alt=""><span style="color:#0f172a">Slicekeeper</span></span></div>
+        <div class="dark"><span class="lockup"><img src="logo-stacks.svg" alt=""><span style="color:#fff">Slicekeeper</span></span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>B — Schild mit Layern</h2>
+      <p>Schild = „keeper". Drei Layer-Linien plus Punkt = Versionsstände. Etwas erzählerischer.</p>
+      <div class="row">
+        <div class="light icon-only"><img src="logo-shield.svg" alt=""></div>
+        <div class="dark icon-only" style="background:#0f172a"><img src="logo-shield.svg" alt=""></div>
+      </div>
+      <div style="margin-top:8px" class="row">
+        <div class="light"><span class="lockup"><img src="logo-shield.svg" alt=""><span style="color:#0f172a">Slicekeeper</span></span></div>
+        <div class="dark"><span class="lockup"><img src="logo-shield.svg" alt=""><span style="color:#fff">Slicekeeper</span></span></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <h2>C — Schlüssel mit Layer-Bart</h2>
+      <p>Wörtlicher „Keeper" = Schlüssel. Schlüsselbart sind versetzte Layer-Stege. Verspielter, gut für Sticker.</p>
+      <div class="row">
+        <div class="light icon-only"><img src="logo-key.svg" alt="" style="width:auto;height:36px"></div>
+        <div class="dark icon-only" style="background:#0f172a"><img src="logo-key.svg" alt="" style="width:auto;height:36px"></div>
+      </div>
+      <div style="margin-top:8px" class="row">
+        <div class="light"><span class="lockup"><img src="logo-key.svg" alt="" style="width:auto;height:24px"><span style="color:#0f172a">Slicekeeper</span></span></div>
+        <div class="dark"><span class="lockup"><img src="logo-key.svg" alt="" style="width:auto;height:24px"><span style="color:#fff">Slicekeeper</span></span></div>
+      </div>
+    </article>
+
+  </div>
+
+  <footer>Mein Tipp: <strong>A — Layered S</strong>. Skaliert am besten von 16 px Favicon bis Repo-Banner und liest sich auch als „Stack" (Versionen).</footer>
+</body>
+</html>

@@ -12,7 +12,7 @@ def test_healthz(client: TestClient) -> None:
 def test_index_renders(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
-    assert "SlicerDB" in response.text
+    assert "Slicekeeper" in response.text
 
 
 def test_static_pages_render(client: TestClient) -> None:

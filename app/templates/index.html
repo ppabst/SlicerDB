@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% block title %}Slicekeeper · Übersicht{% endblock %}
 
 {% block content %}
 <section class="space-y-8">
     <div>
-        <h1 class="text-3xl font-bold tracking-tight">SlicerDB</h1>
-        <p class="mt-2 text-slate-600">
-            Versionierte Slicer-Profile pro Drucker, Düse, Qualität, Filament und Slicer.
+        <h1 class="text-3xl font-bold tracking-tight">Slicekeeper</h1>
+        <p class="mt-2 max-w-prose text-slate-600">
+            Die Datenbank für deine Slicer Profile — versioniert pro Drucker, Düse, Bauplatte, Qualität, Filament und Slicer.
         </p>
     </div>
 
@@ -28,8 +29,8 @@
     </div>
 
     <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-900">
-        <p class="font-medium">Phase 1 läuft.</p>
-        <p class="mt-1">CRUD für Drucker / Düsen / Slicer / Filamente / Profile + versionierter Datei-Upload.</p>
+        <p class="font-medium">Phase 1.6 läuft.</p>
+        <p class="mt-1">CRUD für alle Entitäten · Bauplatten-Katalog · Versionierter Datei-Upload · Auto-Parser für OrcaSlicer-JSON und Anycubic-Bundles.</p>
     </div>
 </section>
 {% endblock %}
