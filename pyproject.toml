@@ -33,7 +33,9 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "C4", "SIM", "RUF"]
-ignore = ["E501"]
+# B008: FastAPI's `Depends()/File()/Form()` in defaults is idiomatic.
+# RUF002: Unicode `×` is intentional in German UI strings.
+ignore = ["E501", "B008", "RUF002"]
 
 [tool.mypy]
 python_version = "3.13"

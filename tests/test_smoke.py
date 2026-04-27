@@ -1,10 +1,7 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-
-def test_healthz() -> None:
-    client = TestClient(app)
+def test_healthz(client: TestClient) -> None:
     response = client.get("/healthz")
     assert response.status_code == 200
     body = response.json()
@@ -12,8 +9,13 @@ def test_healthz() -> None:
     assert "version" in body
 
 
-def test_index_renders() -> None:
-    client = TestClient(app)
+def test_index_renders(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert "SlicerDB" in response.text
+
+
+def test_static_pages_render(client: TestClient) -> None:
+    for path in ["/printers", "/nozzles", "/slicers", "/filaments", "/profiles"]:
+        response = client.get(path)
+        assert response.status_code == 200, f"{path} returned {response.status_code}"

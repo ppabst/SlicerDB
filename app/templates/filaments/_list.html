@@ -1,0 +1,40 @@
+{% from "_macros.html" import delete_btn, empty_state %}
+
+{% if filaments %}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+                <th class="px-4 py-2.5"></th>
+                <th class="px-4 py-2.5">Name</th>
+                <th class="px-4 py-2.5">Hersteller</th>
+                <th class="px-4 py-2.5">Material</th>
+                <th class="px-4 py-2.5">Hotend</th>
+                <th class="px-4 py-2.5">Bett</th>
+                <th class="px-4 py-2.5 text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for f in filaments %}
+            <tr>
+                <td class="px-3 py-2.5">
+                    <span class="inline-block h-4 w-4 rounded-full border border-slate-200" style="background-color: {{ f.color_hex or '#e2e8f0' }};"></span>
+                </td>
+                <td class="px-4 py-2.5 font-medium text-slate-900">{{ f.name }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ f.manufacturer }}</td>
+                <td class="px-4 py-2.5">
+                    <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ f.material }}</span>
+                </td>
+                <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">
+                    {% if f.hotend_temp_min and f.hotend_temp_max %}{{ f.hotend_temp_min }}–{{ f.hotend_temp_max }} °C{% else %}—{% endif %}
+                </td>
+                <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">{% if f.bed_temp %}{{ f.bed_temp }} °C{% else %}—{% endif %}</td>
+                <td class="px-4 py-2.5 text-right">{{ delete_btn('/filaments/' ~ f.id, '#filament-list') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{{ empty_state('Noch kein Filament angelegt.') }}
+{% endif %}

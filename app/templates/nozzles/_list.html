@@ -1,0 +1,30 @@
+{% from "_macros.html" import delete_btn, empty_state %}
+
+{% if rows %}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+                <th class="px-4 py-2.5">Drucker</th>
+                <th class="px-4 py-2.5">Durchmesser</th>
+                <th class="px-4 py-2.5">Material</th>
+                <th class="px-4 py-2.5">Notizen</th>
+                <th class="px-4 py-2.5 text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for nozzle, printer in rows %}
+            <tr>
+                <td class="px-4 py-2.5 font-medium text-slate-900">{{ printer.name }}</td>
+                <td class="px-4 py-2.5 tabular-nums text-slate-700">{{ "%.2f"|format(nozzle.diameter_mm) }} mm</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ nozzle.material }}</td>
+                <td class="px-4 py-2.5 text-slate-500 text-xs">{{ nozzle.notes or '—' }}</td>
+                <td class="px-4 py-2.5 text-right">{{ delete_btn('/nozzles/' ~ nozzle.id, '#nozzle-list') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{{ empty_state('Noch keine Düse angelegt.') }}
+{% endif %}

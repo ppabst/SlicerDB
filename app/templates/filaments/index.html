@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea_field, submit_btn, page_header %}
+
+{% block title %}Filamente · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Filamente', 'Manuell — automatischer Spoolman-Sync ab Phase 2.') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="filament-list">
+            {% include "filaments/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neues Filament</h2>
+        <form hx-post="/filaments"
+              hx-target="#filament-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ field('Name', 'name', required=True, placeholder='Galaxy Black') }}
+            {{ field('Hersteller', 'manufacturer', required=True, placeholder='Polymaker') }}
+            {{ field('Material', 'material', value='PLA', placeholder='PLA / PETG / ABS / TPU') }}
+            {{ field('Farbe (hex)', 'color_hex', placeholder='#1a1a1a') }}
+            <div class="grid grid-cols-3 gap-2">
+                {{ field('Hotend min °C', 'hotend_temp_min', type='number') }}
+                {{ field('Hotend max °C', 'hotend_temp_max', type='number') }}
+                {{ field('Bett °C', 'bed_temp', type='number') }}
+            </div>
+            {{ textarea_field('Notizen', 'notes') }}
+            {{ submit_btn() }}
+        </form>
+    </section>
+</div>
+{% endblock %}

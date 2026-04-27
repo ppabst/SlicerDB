@@ -58,6 +58,8 @@ WORKDIR /app
 
 COPY --from=builder --chown=slicerdb:slicerdb /app/.venv /app/.venv
 COPY --chown=slicerdb:slicerdb app /app/app
+COPY --chown=slicerdb:slicerdb alembic /app/alembic
+COPY --chown=slicerdb:slicerdb alembic.ini /app/alembic.ini
 COPY --from=assets --chown=slicerdb:slicerdb /assets/output.css /app/app/static/css/output.css
 COPY --from=assets --chown=slicerdb:slicerdb /assets/htmx.min.js /app/app/static/js/htmx.min.js
 

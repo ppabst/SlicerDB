@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select_field, submit_btn, page_header %}
+
+{% block title %}Slicer · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Slicer', 'OrcaSlicer · Anycubic Slicer Next · Elegoo Slicer · …') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="slicer-list">
+            {% include "slicers/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neuer Slicer</h2>
+        <form hx-post="/slicers"
+              hx-target="#slicer-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ field('Name', 'name', required=True, placeholder='OrcaSlicer') }}
+            {{ field('Version', 'version', placeholder='2.3.0') }}
+            {{ select_field('Profil-Format', 'profile_format', profile_formats|zip(profile_formats)|list, required=True, hint='Bestimmt, wie Dateien später geparst werden.') }}
+            {{ submit_btn() }}
+        </form>
+    </section>
+</div>
+{% endblock %}

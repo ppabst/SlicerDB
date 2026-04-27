@@ -17,3 +17,5 @@ docs
 !app/templates/*.html
 .env
 .env.*
+alembic/__pycache__
+alembic/versions/__pycache__

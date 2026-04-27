@@ -1,0 +1,28 @@
+{% from "_macros.html" import delete_btn, empty_state %}
+
+{% if printers %}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+                <th class="px-4 py-2.5">Name</th>
+                <th class="px-4 py-2.5">Hersteller / Modell</th>
+                <th class="px-4 py-2.5">Bauraum</th>
+                <th class="px-4 py-2.5 text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for p in printers %}
+            <tr>
+                <td class="px-4 py-2.5 font-medium text-slate-900">{{ p.name }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ p.manufacturer }} <span class="text-slate-400">·</span> {{ p.model }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ p.build_volume or '—' }}</td>
+                <td class="px-4 py-2.5 text-right">{{ delete_btn('/printers/' ~ p.id, '#printer-list') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{{ empty_state('Noch kein Drucker angelegt. Rechts hinzufügen.') }}
+{% endif %}

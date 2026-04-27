@@ -4,19 +4,21 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 
 from app import __version__
 from app.config import settings
+from app.db import run_migrations
+from app.routers import filaments, nozzles, printers, profiles, slicers
+from app.templating import templates
 
 BASE_DIR = Path(__file__).parent
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     settings.files_dir.mkdir(parents=True, exist_ok=True)
+    run_migrations()
     yield
 
 
@@ -28,6 +30,12 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+app.include_router(printers.router)
+app.include_router(nozzles.router)
+app.include_router(slicers.router)
+app.include_router(filaments.router)
+app.include_router(profiles.router)
 
 
 @app.get("/healthz")

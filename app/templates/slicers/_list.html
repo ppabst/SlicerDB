@@ -1,0 +1,30 @@
+{% from "_macros.html" import delete_btn, empty_state %}
+
+{% if slicers %}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+                <th class="px-4 py-2.5">Name</th>
+                <th class="px-4 py-2.5">Version</th>
+                <th class="px-4 py-2.5">Profil-Format</th>
+                <th class="px-4 py-2.5 text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for s in slicers %}
+            <tr>
+                <td class="px-4 py-2.5 font-medium text-slate-900">{{ s.name }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ s.version or '—' }}</td>
+                <td class="px-4 py-2.5">
+                    <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ s.profile_format }}</span>
+                </td>
+                <td class="px-4 py-2.5 text-right">{{ delete_btn('/slicers/' ~ s.id, '#slicer-list') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{{ empty_state('Noch kein Slicer angelegt.') }}
+{% endif %}

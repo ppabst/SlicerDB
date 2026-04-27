@@ -1,0 +1,42 @@
+{% from "_macros.html" import delete_btn, empty_state %}
+
+{% if rows %}
+<div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+    <table class="w-full text-sm">
+        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <tr>
+                <th class="px-4 py-2.5">Profil</th>
+                <th class="px-4 py-2.5">Drucker</th>
+                <th class="px-4 py-2.5">Filament</th>
+                <th class="px-4 py-2.5">Slicer</th>
+                <th class="px-4 py-2.5">Layer</th>
+                <th class="px-4 py-2.5">Qualität</th>
+                <th class="px-4 py-2.5">Aktive Version</th>
+                <th class="px-4 py-2.5 text-right">Aktion</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for profile, printer, slicer, filament in rows %}
+            <tr>
+                <td class="px-4 py-2.5 font-medium text-slate-900">
+                    <a href="/profiles/{{ profile.id }}" class="hover:text-emerald-700">{{ profile.name }}</a>
+                </td>
+                <td class="px-4 py-2.5 text-slate-600">{{ printer.name }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ filament.manufacturer }} {{ filament.name }}</td>
+                <td class="px-4 py-2.5 text-slate-600">{{ slicer.name }}</td>
+                <td class="px-4 py-2.5 tabular-nums text-slate-700">{{ "%.2f"|format(profile.layer_height_mm) }} mm</td>
+                <td class="px-4 py-2.5">
+                    <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ profile.quality_label }}</span>
+                </td>
+                <td class="px-4 py-2.5 text-slate-600">
+                    {% if profile.active_version_id %}v{{ profile.active_version_id }}{% else %}<span class="text-slate-400">—</span>{% endif %}
+                </td>
+                <td class="px-4 py-2.5 text-right">{{ delete_btn('/profiles/' ~ profile.id, '#profile-list') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{{ empty_state('Noch kein Profil angelegt.') }}
+{% endif %}

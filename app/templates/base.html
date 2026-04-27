@@ -14,10 +14,21 @@
                 <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
                 SlicerDB
             </a>
-            <nav class="flex items-center gap-6 text-sm text-slate-600">
-                <a href="/" class="hover:text-slate-900">Übersicht</a>
-                <a href="/healthz" class="hover:text-slate-900">Status</a>
-                <span class="text-slate-400">v{{ version }}</span>
+            <nav class="flex items-center gap-5 text-sm">
+                {% set nav = [
+                    ('/', 'Übersicht'),
+                    ('/profiles', 'Profile'),
+                    ('/printers', 'Drucker'),
+                    ('/nozzles', 'Düsen'),
+                    ('/filaments', 'Filamente'),
+                    ('/slicers', 'Slicer'),
+                ] %}
+                {% for href, label in nav %}
+                <a href="{{ href }}"
+                   class="text-slate-600 hover:text-slate-900 {% if request.url.path == href or (href != '/' and request.url.path.startswith(href)) %}font-semibold text-slate-900{% endif %}">
+                    {{ label }}
+                </a>
+                {% endfor %}
             </nav>
         </div>
     </header>

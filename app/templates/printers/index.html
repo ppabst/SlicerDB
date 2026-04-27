@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea_field, submit_btn, page_header %}
+
+{% block title %}Drucker · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Drucker', 'Hardware-Inventar — pro Drucker später Düsen anlegen.') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="printer-list">
+            {% include "printers/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neuer Drucker</h2>
+        <form hx-post="/printers"
+              hx-target="#printer-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ field('Name', 'name', required=True, placeholder='z.B. Anycubic Kobra 3') }}
+            {{ field('Hersteller', 'manufacturer', required=True, placeholder='Anycubic') }}
+            {{ field('Modell', 'model', required=True, placeholder='Kobra 3') }}
+            {{ field('Bauraum', 'build_volume', placeholder='250×250×260 mm') }}
+            {{ textarea_field('Notizen', 'notes') }}
+            {{ submit_btn() }}
+        </form>
+    </section>
+</div>
+{% endblock %}

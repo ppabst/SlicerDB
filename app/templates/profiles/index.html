@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, textarea_field, submit_btn, page_header %}
+
+{% block title %}Profile · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Profile', 'Versionierte Slicer-Settings — pro Drucker × Düse × Filament × Slicer × Qualität.') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="profile-list">
+            {% include "profiles/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neues Profil</h2>
+        {% if printers and nozzles and filaments and slicers %}
+        <form hx-post="/profiles"
+              hx-target="#profile-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ field('Profilname', 'name', required=True, placeholder='0.2 Standard PLA') }}
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Drucker <span class="text-rose-500">*</span></span>
+                <select name="printer_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for p in printers %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Düse <span class="text-rose-500">*</span></span>
+                <select name="nozzle_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for nozzle, printer in nozzles %}
+                        <option value="{{ nozzle.id }}">{{ printer.name }} — {{ "%.2f"|format(nozzle.diameter_mm) }} mm ({{ nozzle.material }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Filament <span class="text-rose-500">*</span></span>
+                <select name="filament_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for f in filaments %}<option value="{{ f.id }}">{{ f.manufacturer }} — {{ f.name }} ({{ f.material }})</option>{% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Slicer <span class="text-rose-500">*</span></span>
+                <select name="slicer_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for s in slicers %}<option value="{{ s.id }}">{{ s.name }}{% if s.version %} · {{ s.version }}{% endif %}</option>{% endfor %}
+                </select>
+            </label>
+
+            <div class="grid grid-cols-2 gap-2">
+                {{ field('Layer Height (mm)', 'layer_height_mm', type='number', step='0.01', value='0.2', required=True) }}
+                {{ field('Qualitätsstufe', 'quality_label', value='Standard', placeholder='Draft / Standard / Fine') }}
+            </div>
+
+            {{ textarea_field('Notizen', 'notes') }}
+            {{ submit_btn('Profil anlegen') }}
+        </form>
+        {% else %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
+            <p class="font-medium">Setup unvollständig.</p>
+            <p>Lege zuerst an:</p>
+            <ul class="list-disc list-inside">
+                {% if not printers %}<li><a href="/printers" class="underline">Drucker</a></li>{% endif %}
+                {% if not nozzles %}<li><a href="/nozzles" class="underline">Düse</a></li>{% endif %}
+                {% if not filaments %}<li><a href="/filaments" class="underline">Filament</a></li>{% endif %}
+                {% if not slicers %}<li><a href="/slicers" class="underline">Slicer</a></li>{% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

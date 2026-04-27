@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile.name }} · SlicerDB{% endblock %}
+
+{% block content %}
+<nav class="mb-4 text-sm">
+    <a href="/profiles" class="text-slate-500 hover:text-slate-900">← Profile</a>
+</nav>
+
+<div class="mb-8 flex items-start justify-between">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight">{{ profile.name }}</h1>
+        <p class="mt-2 text-sm text-slate-600">
+            {{ printer.name }} <span class="text-slate-300">·</span>
+            {{ "%.2f"|format(nozzle.diameter_mm) }} mm {{ nozzle.material }} <span class="text-slate-300">·</span>
+            {{ filament.manufacturer }} {{ filament.name }} ({{ filament.material }}) <span class="text-slate-300">·</span>
+            {{ slicer.name }}{% if slicer.version %} {{ slicer.version }}{% endif %}
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+            Layer {{ "%.2f"|format(profile.layer_height_mm) }} mm <span class="text-slate-300">·</span>
+            <span class="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 font-medium text-slate-700">{{ profile.quality_label }}</span>
+        </p>
+        {% if profile.notes %}<p class="mt-3 max-w-prose text-sm text-slate-600">{{ profile.notes }}</p>{% endif %}
+    </div>
+</div>
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Versionen</h2>
+        {% if versions %}
+        <div class="space-y-3">
+            {% for v in versions %}
+            <article class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm {% if profile.active_version_id == v.id %}ring-2 ring-emerald-400{% endif %}">
+                <header class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold">v{{ v.version_no }}</span>
+                        {% if profile.active_version_id == v.id %}
+                            <span class="inline-flex items-center rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">aktiv</span>
+                        {% endif %}
+                        {% if v.rating == 'good' %}
+                            <span class="inline-flex items-center rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">gut</span>
+                        {% elif v.rating == 'bad' %}
+                            <span class="inline-flex items-center rounded bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700">schlecht</span>
+                        {% elif v.rating == 'untested' %}
+                            <span class="inline-flex items-center rounded bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-600">ungetestet</span>
+                        {% endif %}
+                    </div>
+                    <time class="text-xs text-slate-500">{{ v.created_at.strftime('%Y-%m-%d %H:%M') }}</time>
+                </header>
+
+                {% if v.change_note %}
+                <p class="mt-2 text-sm text-slate-700">{{ v.change_note }}</p>
+                {% endif %}
+                {% if v.rating_note %}
+                <p class="mt-1 text-xs italic text-slate-500">{{ v.rating_note }}</p>
+                {% endif %}
+
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    {% if v.raw_blob_path %}
+                    <a href="/profiles/{{ profile.id }}/versions/{{ v.id }}/download"
+                       class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
+                        ⬇ {{ v.raw_filename or 'Datei' }} ({{ v.raw_format or '?' }})
+                    </a>
+                    {% endif %}
+
+                    {% if profile.active_version_id != v.id %}
+                    <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/activate">
+                        <button class="inline-flex items-center rounded border border-emerald-200 px-2.5 py-1 font-medium text-emerald-700 hover:bg-emerald-50">
+                            Aktiv setzen
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <form method="post" action="/profiles/{{ profile.id }}/versions/{{ v.id }}/rate" class="flex items-center gap-1">
+                        <select name="rating" class="rounded border border-slate-300 px-2 py-1 text-xs">
+                            <option value="good" {% if v.rating == 'good' %}selected{% endif %}>gut</option>
+                            <option value="bad" {% if v.rating == 'bad' %}selected{% endif %}>schlecht</option>
+                            <option value="untested" {% if v.rating == 'untested' %}selected{% endif %}>ungetestet</option>
+                        </select>
+                        <input name="rating_note" value="{{ v.rating_note or '' }}" placeholder="Bewertung-Notiz" class="w-40 rounded border border-slate-300 px-2 py-1 text-xs">
+                        <button class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50">
+                            Bewerten
+                        </button>
+                    </form>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-10 text-center text-sm text-slate-500">
+            Noch keine Version hochgeladen.
+        </div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neue Version</h2>
+        <form method="post"
+              enctype="multipart/form-data"
+              action="/profiles/{{ profile.id }}/versions"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Slicer-Datei <span class="text-rose-500">*</span></span>
+                <input type="file" name="file" required
+                       class="text-sm file:mr-3 file:rounded file:border-0 file:bg-emerald-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-emerald-700 hover:file:bg-emerald-100">
+                <span class="text-xs text-slate-500">Slicer-Format: <code class="rounded bg-slate-100 px-1">{{ slicer.profile_format }}</code></span>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Was hat sich geändert?</span>
+                <textarea name="change_note" rows="3" placeholder="z.B. Retraction 0.8 → 1.2, Innenwand-Speed -10%"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400"></textarea>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Initiale Bewertung</span>
+                <select name="rating" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm">
+                    <option value="">— ungesetzt —</option>
+                    <option value="untested">ungetestet</option>
+                    <option value="good">gut</option>
+                    <option value="bad">schlecht</option>
+                </select>
+            </label>
+
+            <button type="submit"
+                    class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">
+                Version hochladen
+            </button>
+        </form>
+    </section>
+</div>
+{% endblock %}

@@ -1,0 +1,304 @@
+"""Print profiles and their versioned settings.
+
+A PrintProfile is the Drucker × Düse × Filament × Slicer × Qualität combination.
+Every change to the underlying settings produces a new immutable ProfileVersion
+that stores the original slicer file as a blob plus optional metadata.
+"""
+
+import re
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, func, select
+
+from app.config import settings
+from app.db import get_session
+from app.models import (
+    Filament,
+    Nozzle,
+    Printer,
+    PrintProfile,
+    ProfileVersion,
+    Slicer,
+)
+from app.templating import templates
+
+ALLOWED_RATINGS = {"good", "bad", "untested"}
+SAFE_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
+
+router = APIRouter(prefix="/profiles", tags=["profiles"])
+
+
+# ---------- helpers ----------
+
+
+def _safe_filename(name: str) -> str:
+    cleaned = SAFE_FILENAME.sub("_", name).strip("._-")
+    return cleaned or "file.bin"
+
+
+def _profile_files_dir(profile_id: int) -> Path:
+    p = settings.files_dir / f"profile-{profile_id}"
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def _next_version_no(session: Session, profile_id: int) -> int:
+    current = session.exec(
+        select(func.max(ProfileVersion.version_no)).where(
+            ProfileVersion.profile_id == profile_id
+        )
+    ).one()
+    return (current or 0) + 1
+
+
+def _load_profile(session: Session, profile_id: int) -> PrintProfile:
+    profile = session.get(PrintProfile, profile_id)
+    if profile is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return profile
+
+
+# ---------- list / create / delete ----------
+
+
+def _list_response(request: Request, session: Session) -> HTMLResponse:
+    profiles = session.exec(
+        select(PrintProfile, Printer, Slicer, Filament)
+        .join(Printer, PrintProfile.printer_id == Printer.id)
+        .join(Slicer, PrintProfile.slicer_id == Slicer.id)
+        .join(Filament, PrintProfile.filament_id == Filament.id)
+        .order_by(Printer.name, PrintProfile.name)
+    ).all()
+    return templates.TemplateResponse(
+        request, "profiles/_list.html", {"rows": profiles}
+    )
+
+
+@router.get("", response_class=HTMLResponse)
+def index(request: Request, session: Session = Depends(get_session)) -> HTMLResponse:
+    rows = session.exec(
+        select(PrintProfile, Printer, Slicer, Filament)
+        .join(Printer, PrintProfile.printer_id == Printer.id)
+        .join(Slicer, PrintProfile.slicer_id == Slicer.id)
+        .join(Filament, PrintProfile.filament_id == Filament.id)
+        .order_by(Printer.name, PrintProfile.name)
+    ).all()
+    printers = session.exec(select(Printer).order_by(Printer.name)).all()
+    nozzles = session.exec(
+        select(Nozzle, Printer)
+        .join(Printer, Nozzle.printer_id == Printer.id)
+        .order_by(Printer.name, Nozzle.diameter_mm)
+    ).all()
+    filaments = session.exec(
+        select(Filament).order_by(Filament.manufacturer, Filament.name)
+    ).all()
+    slicers = session.exec(select(Slicer).order_by(Slicer.name)).all()
+    return templates.TemplateResponse(
+        request,
+        "profiles/index.html",
+        {
+            "rows": rows,
+            "printers": printers,
+            "nozzles": nozzles,
+            "filaments": filaments,
+            "slicers": slicers,
+        },
+    )
+
+
+@router.post("", response_class=HTMLResponse)
+def create(
+    request: Request,
+    name: str = Form(min_length=1),
+    printer_id: int = Form(),
+    nozzle_id: int = Form(),
+    filament_id: int = Form(),
+    slicer_id: int = Form(),
+    layer_height_mm: float = Form(gt=0, le=2.0),
+    quality_label: str = Form(default="Standard"),
+    notes: str | None = Form(default=None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    # Validate FK relationships before insert; surface clean errors instead of IntegrityError.
+    if session.get(Printer, printer_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown printer_id")
+    if session.get(Nozzle, nozzle_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown nozzle_id")
+    if session.get(Filament, filament_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown filament_id")
+    if session.get(Slicer, slicer_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown slicer_id")
+
+    profile = PrintProfile(
+        name=name.strip(),
+        printer_id=printer_id,
+        nozzle_id=nozzle_id,
+        filament_id=filament_id,
+        slicer_id=slicer_id,
+        layer_height_mm=layer_height_mm,
+        quality_label=quality_label.strip() or "Standard",
+        notes=(notes or None),
+    )
+    session.add(profile)
+    session.commit()
+    return _list_response(request, session)
+
+
+@router.delete("/{profile_id}", response_class=HTMLResponse)
+def delete(
+    profile_id: int,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    # Drop on-disk blobs along with the row.
+    blob_dir = settings.files_dir / f"profile-{profile_id}"
+    session.delete(profile)
+    session.commit()
+    if blob_dir.exists():
+        for f in blob_dir.iterdir():
+            f.unlink(missing_ok=True)
+        blob_dir.rmdir()
+    return _list_response(request, session)
+
+
+# ---------- detail (versions) ----------
+
+
+@router.get("/{profile_id}", response_class=HTMLResponse)
+def detail(
+    profile_id: int,
+    request: Request,
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    printer = session.get(Printer, profile.printer_id)
+    nozzle = session.get(Nozzle, profile.nozzle_id)
+    filament = session.get(Filament, profile.filament_id)
+    slicer = session.get(Slicer, profile.slicer_id)
+    versions = session.exec(
+        select(ProfileVersion)
+        .where(ProfileVersion.profile_id == profile_id)
+        .order_by(ProfileVersion.version_no.desc())
+    ).all()
+    return templates.TemplateResponse(
+        request,
+        "profiles/detail.html",
+        {
+            "profile": profile,
+            "printer": printer,
+            "nozzle": nozzle,
+            "filament": filament,
+            "slicer": slicer,
+            "versions": versions,
+        },
+    )
+
+
+@router.post("/{profile_id}/versions", response_class=HTMLResponse)
+async def upload_version(
+    profile_id: int,
+    request: Request,
+    file: UploadFile = File(),
+    change_note: str | None = Form(default=None),
+    rating: str | None = Form(default=None),
+    rating_note: str | None = Form(default=None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    slicer = session.get(Slicer, profile.slicer_id)
+    if rating and rating not in ALLOWED_RATINGS:
+        raise HTTPException(status_code=400, detail=f"rating must be one of {ALLOWED_RATINGS}")
+
+    version_no = _next_version_no(session, profile_id)
+    raw_name = _safe_filename(file.filename or "profile.bin")
+    blob_path = _profile_files_dir(profile_id) / f"v{version_no:04d}-{raw_name}"
+    contents = await file.read()
+    blob_path.write_bytes(contents)
+
+    version = ProfileVersion(
+        profile_id=profile_id,
+        version_no=version_no,
+        change_note=(change_note or None),
+        rating=(rating or None),
+        rating_note=(rating_note or None),
+        raw_filename=raw_name,
+        raw_format=slicer.profile_format if slicer else None,
+        raw_blob_path=str(blob_path.relative_to(settings.files_dir)),
+    )
+    session.add(version)
+
+    # First version becomes active automatically.
+    if profile.active_version_id is None:
+        session.flush()  # populate version.id
+        profile.active_version_id = version.id
+        session.add(profile)
+
+    try:
+        session.commit()
+    except IntegrityError as exc:  # pragma: no cover - defensive
+        session.rollback()
+        blob_path.unlink(missing_ok=True)
+        raise HTTPException(status_code=500, detail="Could not persist version") from exc
+
+    return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)
+
+
+@router.get("/{profile_id}/versions/{version_id}/download")
+def download_version(
+    profile_id: int,
+    version_id: int,
+    session: Session = Depends(get_session),
+) -> FileResponse:
+    version = session.get(ProfileVersion, version_id)
+    if version is None or version.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    if not version.raw_blob_path:
+        raise HTTPException(status_code=404, detail="Version has no stored file")
+    full_path = settings.files_dir / version.raw_blob_path
+    if not full_path.exists():
+        raise HTTPException(status_code=404, detail="File missing on disk")
+    return FileResponse(
+        full_path,
+        filename=version.raw_filename or full_path.name,
+        media_type="application/octet-stream",
+    )
+
+
+@router.post("/{profile_id}/versions/{version_id}/activate")
+def activate_version(
+    profile_id: int,
+    version_id: int,
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    profile = _load_profile(session, profile_id)
+    version = session.get(ProfileVersion, version_id)
+    if version is None or version.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    profile.active_version_id = version.id
+    session.add(profile)
+    session.commit()
+    return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)
+
+
+@router.post("/{profile_id}/versions/{version_id}/rate")
+def rate_version(
+    profile_id: int,
+    version_id: int,
+    rating: str = Form(),
+    rating_note: str | None = Form(default=None),
+    session: Session = Depends(get_session),
+) -> RedirectResponse:
+    if rating not in ALLOWED_RATINGS:
+        raise HTTPException(status_code=400, detail=f"rating must be one of {ALLOWED_RATINGS}")
+    version = session.get(ProfileVersion, version_id)
+    if version is None or version.profile_id != profile_id:
+        raise HTTPException(status_code=404, detail="Version not found")
+    version.rating = rating
+    version.rating_note = (rating_note or None)
+    session.add(version)
+    session.commit()
+    return RedirectResponse(url=f"/profiles/{profile_id}", status_code=303)

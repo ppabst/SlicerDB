@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field, select_field, textarea_field, submit_btn, page_header %}
+
+{% block title %}Düsen · SlicerDB{% endblock %}
+
+{% block content %}
+{{ page_header('Düsen', 'Pro Drucker können mehrere Düsen mit unterschiedlichem Durchmesser oder Material existieren.') }}
+
+<div class="grid gap-8 lg:grid-cols-[2fr_1fr]">
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Liste</h2>
+        <div id="nozzle-list">
+            {% include "nozzles/_list.html" %}
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Neue Düse</h2>
+        {% if printers %}
+        <form hx-post="/nozzles"
+              hx-target="#nozzle-list"
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="grid gap-3 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            {{ select_field('Drucker', 'printer_id', printers|map(attribute='id')|zip(printers|map(attribute='name'))|list, required=True) }}
+            {{ field('Durchmesser (mm)', 'diameter_mm', type='number', step='0.05', value='0.4', required=True) }}
+            {{ field('Material', 'material', value='brass', placeholder='brass / hardened / ruby') }}
+            {{ textarea_field('Notizen', 'notes') }}
+            {{ submit_btn() }}
+        </form>
+        {% else %}
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            Lege zuerst <a href="/printers" class="underline font-medium">einen Drucker</a> an.
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
