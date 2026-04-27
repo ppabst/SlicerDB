@@ -1,6 +1,6 @@
 [project]
 name = "slicerdb"
-version = "0.0.1"
+version = "1.0.0"
 description = "Slicekeeper — Die Datenbank für deine Slicer Profile (versioned 3D printer slicer settings)"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -9,7 +9,7 @@ authors = [{ name = "LennyK" }]
 maintainers = [{ name = "LennyK" }]
 keywords = ["3d-printing", "slicer", "orcaslicer", "anycubic", "spoolman", "self-hosted"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
     "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Programming Language :: Python :: 3.13",

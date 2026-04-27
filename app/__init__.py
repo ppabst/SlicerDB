@@ -18,7 +18,7 @@ the GPL-3.0-or-later license and these authorship notices, is a
 violation of copyright and the license terms.
 """
 
-__version__ = "0.0.1"
+__version__ = "1.0.0"
 __author__ = "LennyK"
 __license__ = "GPL-3.0-or-later"
 __copyright__ = "Copyright (C) 2026 LennyK"

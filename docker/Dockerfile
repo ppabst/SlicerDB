@@ -47,12 +47,29 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ---------- Stage 3: runtime ----------
 FROM python:3.13-slim-bookworm AS runtime
 
+ARG VERSION=dev
+ARG VCS_REF=unknown
+ARG BUILD_DATE=unknown
+
+LABEL org.opencontainers.image.title="Slicekeeper" \
+      org.opencontainers.image.description="Versioned 3D printer slicer settings manager — die Datenbank für deine Slicer Profile." \
+      org.opencontainers.image.authors="LennyK" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.source="https://github.com/ppabst/SlicerDB" \
+      org.opencontainers.image.url="https://github.com/ppabst/SlicerDB" \
+      org.opencontainers.image.documentation="https://github.com/ppabst/SlicerDB#readme" \
+      org.opencontainers.image.vendor="LennyK" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH" \
     SLICERDB_DATA_DIR=/data \
     SLICERDB_BIND_HOST=0.0.0.0 \
-    SLICERDB_BIND_PORT=8080
+    SLICERDB_BIND_PORT=8080 \
+    SLICEKEEPER_VERSION="${VERSION}"
 
 RUN groupadd --system --gid 1001 slicerdb && \
     useradd --system --uid 1001 --gid 1001 --home /app slicerdb && \
