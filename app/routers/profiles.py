@@ -177,6 +177,101 @@ def delete(
     return _list_response(request, session)
 
 
+# ----- Inline edit (Profile carries 5 FK selects) -----
+
+
+def _profile_row_response(
+    request: Request,
+    profile: PrintProfile,
+    session: Session,
+    *,
+    edit: bool = False,
+) -> HTMLResponse:
+    printer = session.get(Printer, profile.printer_id)
+    slicer = session.get(Slicer, profile.slicer_id)
+    filament = session.get(Filament, profile.filament_id)
+    template = "profiles/_row_edit.html" if edit else "profiles/_row.html"
+    ctx: dict = {
+        "profile": profile,
+        "printer": printer,
+        "slicer": slicer,
+        "filament": filament,
+    }
+    if edit:
+        ctx["printers"] = session.exec(select(Printer).order_by(Printer.name)).all()
+        ctx["nozzles"] = session.exec(
+            select(Nozzle, Printer)
+            .join(Printer, Nozzle.printer_id == Printer.id)
+            .order_by(Printer.name, Nozzle.diameter_mm)
+        ).all()
+        ctx["filaments"] = session.exec(
+            select(Filament).order_by(Filament.manufacturer, Filament.name)
+        ).all()
+        ctx["slicers"] = session.exec(select(Slicer).order_by(Slicer.name)).all()
+        ctx["build_plates"] = session.exec(
+            select(BuildPlate).order_by(BuildPlate.manufacturer, BuildPlate.name)
+        ).all()
+    return templates.TemplateResponse(request, template, ctx)
+
+
+@router.get("/{profile_id}/row", response_class=HTMLResponse)
+def row_display(
+    profile_id: int, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    return _profile_row_response(request, profile, session)
+
+
+@router.get("/{profile_id}/edit", response_class=HTMLResponse)
+def row_edit(
+    profile_id: int, request: Request, session: Session = Depends(get_session)
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    return _profile_row_response(request, profile, session, edit=True)
+
+
+@router.put("/{profile_id}", response_class=HTMLResponse)
+def update(
+    profile_id: int,
+    request: Request,
+    name: str = Form(min_length=1),
+    printer_id: int = Form(),
+    nozzle_id: int = Form(),
+    filament_id: int = Form(),
+    slicer_id: int = Form(),
+    layer_height_mm: float = Form(gt=0, le=2.0),
+    quality_label: str = Form(default="Standard"),
+    build_plate_id: int | None = Form(default=None),
+    notes: str | None = Form(default=None),
+    session: Session = Depends(get_session),
+) -> HTMLResponse:
+    profile = _load_profile(session, profile_id)
+    if session.get(Printer, printer_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown printer_id")
+    if session.get(Nozzle, nozzle_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown nozzle_id")
+    if session.get(Filament, filament_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown filament_id")
+    if session.get(Slicer, slicer_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown slicer_id")
+    if build_plate_id is not None and session.get(BuildPlate, build_plate_id) is None:
+        raise HTTPException(status_code=400, detail="Unknown build_plate_id")
+
+    profile.name = name.strip()
+    profile.printer_id = printer_id
+    profile.nozzle_id = nozzle_id
+    profile.filament_id = filament_id
+    profile.slicer_id = slicer_id
+    profile.build_plate_id = build_plate_id
+    profile.layer_height_mm = layer_height_mm
+    profile.quality_label = quality_label.strip() or "Standard"
+    profile.notes = (notes or None)
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+    return _profile_row_response(request, profile, session)
+
+
 # ---------- detail (versions) ----------
 
 

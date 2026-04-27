@@ -1,5 +1,7 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
-{% from "_macros.html" import delete_btn, empty_state %}
+{% from "_macros.html" import empty_state, delete_blocked_banner %}
+
+{{ delete_blocked_banner(delete_error) }}
 
 {% if rows %}
 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -15,13 +17,7 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             {% for nozzle, printer in rows %}
-            <tr>
-                <td class="px-4 py-2.5 font-medium text-slate-900">{{ printer.name }}</td>
-                <td class="px-4 py-2.5 tabular-nums text-slate-700">{{ "%.2f"|format(nozzle.diameter_mm) }} mm</td>
-                <td class="px-4 py-2.5 text-slate-600">{{ nozzle.material }}</td>
-                <td class="px-4 py-2.5 text-slate-500 text-xs">{{ nozzle.notes or '—' }}</td>
-                <td class="px-4 py-2.5 text-right">{{ delete_btn('/nozzles/' ~ nozzle.id, '#nozzle-list') }}</td>
-            </tr>
+                {% include "nozzles/_row.html" %}
             {% endfor %}
         </tbody>
     </table>

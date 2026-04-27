@@ -1,5 +1,7 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
-{% from "_macros.html" import delete_btn, empty_state %}
+{% from "_macros.html" import empty_state, delete_blocked_banner %}
+
+{{ delete_blocked_banner(delete_error) }}
 
 {% if printers %}
 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -14,12 +16,7 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
             {% for p in printers %}
-            <tr>
-                <td class="px-4 py-2.5 font-medium text-slate-900">{{ p.name }}</td>
-                <td class="px-4 py-2.5 text-slate-600">{{ p.manufacturer }} <span class="text-slate-400">·</span> {{ p.model }}</td>
-                <td class="px-4 py-2.5 text-slate-600">{{ p.build_volume or '—' }}</td>
-                <td class="px-4 py-2.5 text-right">{{ delete_btn('/printers/' ~ p.id, '#printer-list') }}</td>
-            </tr>
+                {% include "printers/_row.html" %}
             {% endfor %}
         </tbody>
     </table>

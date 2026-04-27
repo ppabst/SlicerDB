@@ -1,0 +1,94 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="profile-{{ profile.id }}" class="bg-emerald-50/40">
+    <td colspan="8" class="px-4 py-4">
+        <form hx-put="/profiles/{{ profile.id }}"
+              hx-target="#profile-{{ profile.id }}"
+              hx-swap="outerHTML"
+              class="grid gap-3 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Profilname</span>
+                <input type="text" name="name" required value="{{ profile.name }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Drucker</span>
+                <select name="printer_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for pr in printers %}
+                    <option value="{{ pr.id }}" {% if profile.printer_id == pr.id %}selected{% endif %}>{{ pr.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Düse</span>
+                <select name="nozzle_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for nozzle, pr in nozzles %}
+                    <option value="{{ nozzle.id }}" {% if profile.nozzle_id == nozzle.id %}selected{% endif %}>
+                        {{ pr.name }} — {{ "%.2f"|format(nozzle.diameter_mm) }} mm ({{ nozzle.material }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Filament</span>
+                <select name="filament_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for f in filaments %}
+                    <option value="{{ f.id }}" {% if profile.filament_id == f.id %}selected{% endif %}>{{ f.manufacturer }} — {{ f.name }} ({{ f.material }})</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Slicer</span>
+                <select name="slicer_id" required class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for sl in slicers %}
+                    <option value="{{ sl.id }}" {% if profile.slicer_id == sl.id %}selected{% endif %}>{{ sl.name }}{% if sl.version %} · {{ sl.version }}{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Bauplatte</span>
+                <select name="build_plate_id" class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    <option value="" {% if not profile.build_plate_id %}selected{% endif %}>— keine zugewiesen —</option>
+                    {% for bp in build_plates %}
+                    <option value="{{ bp.id }}" {% if profile.build_plate_id == bp.id %}selected{% endif %}>
+                        {% if bp.manufacturer %}{{ bp.manufacturer }} — {% endif %}{{ bp.name }}
+                        {%- if bp.bed_temp_min and bp.bed_temp_max %} ({{ bp.bed_temp_min }}–{{ bp.bed_temp_max }} °C){% endif -%}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Layer Height (mm)</span>
+                <input type="number" step="0.01" name="layer_height_mm" required value="{{ profile.layer_height_mm }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Qualitätsstufe</span>
+                <input type="text" name="quality_label" value="{{ profile.quality_label }}" placeholder="Draft / Standard / Fine"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Notizen</span>
+                <textarea name="notes" rows="2"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">{{ profile.notes or '' }}</textarea>
+            </label>
+
+            <div class="flex items-center gap-2 sm:col-span-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">Speichern</button>
+                <button type="button"
+                        hx-get="/profiles/{{ profile.id }}/row"
+                        hx-target="#profile-{{ profile.id }}"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Abbrechen</button>
+            </div>
+        </form>
+    </td>
+</tr>

@@ -1,0 +1,68 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="buildplate-{{ p.id }}" class="bg-emerald-50/40">
+    <td colspan="6" class="px-4 py-4">
+        <form hx-put="/buildplates/{{ p.id }}"
+              hx-target="#buildplate-{{ p.id }}"
+              hx-swap="outerHTML"
+              class="grid gap-3 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Name</span>
+                <input type="text" name="name" required value="{{ p.name }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Hersteller</span>
+                <input type="text" name="manufacturer" value="{{ p.manufacturer or '' }}" placeholder="Bambu Lab / Anycubic / Generic"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Oberfläche</span>
+                <select name="surface_type" required
+                        class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for s in surface_types %}
+                    <option value="{{ s }}" {% if p.surface_type == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Finish</span>
+                <select name="finish"
+                        class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    <option value="" {% if not p.finish %}selected{% endif %}>— offen —</option>
+                    {% for f in finishes %}
+                    <option value="{{ f }}" {% if p.finish == f %}selected{% endif %}>{{ f }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Bett °C min</span>
+                <input type="number" name="bed_temp_min" value="{{ p.bed_temp_min or '' }}" placeholder="55"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Bett °C max</span>
+                <input type="number" name="bed_temp_max" value="{{ p.bed_temp_max or '' }}" placeholder="100"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm tabular-nums shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Kompatible Materialien</span>
+                <input type="text" name="compatible_materials" value="{{ p.compatible_materials or '' }}" placeholder="PLA, PETG, ABS"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Notizen</span>
+                <textarea name="notes" rows="2"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">{{ p.notes or '' }}</textarea>
+            </label>
+            <div class="flex items-center gap-2 sm:col-span-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">Speichern</button>
+                <button type="button"
+                        hx-get="/buildplates/{{ p.id }}/row"
+                        hx-target="#buildplate-{{ p.id }}"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Abbrechen</button>
+            </div>
+        </form>
+    </td>
+</tr>

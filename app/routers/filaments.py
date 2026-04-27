@@ -6,17 +6,25 @@ from sqlmodel import Session, select
 
 from app.db import get_session
 from app.models import Filament
+from app.services.integrity import references_to_filament
 from app.templating import templates
 
 router = APIRouter(prefix="/filaments", tags=["filaments"])
 
 
-def _list_response(request: Request, session: Session) -> HTMLResponse:
+def _list_response(
+    request: Request,
+    session: Session,
+    *,
+    delete_error: dict | None = None,
+) -> HTMLResponse:
     filaments = session.exec(
         select(Filament).order_by(Filament.manufacturer, Filament.name)
     ).all()
     return templates.TemplateResponse(
-        request, "filaments/_list.html", {"filaments": filaments}
+        request,
+        "filaments/_list.html",
+        {"filaments": filaments, "delete_error": delete_error},
     )
 
 
@@ -70,6 +78,16 @@ def delete(
     filament = session.get(Filament, filament_id)
     if filament is None:
         raise HTTPException(status_code=404, detail="Filament not found")
+    refs = references_to_filament(session, filament_id)
+    if refs:
+        return _list_response(
+            request,
+            session,
+            delete_error={
+                "name": f"{filament.manufacturer} {filament.name}",
+                "references": refs,
+            },
+        )
     session.delete(filament)
     session.commit()
     return _list_response(request, session)

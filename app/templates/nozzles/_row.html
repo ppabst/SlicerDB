@@ -1,0 +1,28 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="nozzle-{{ nozzle.id }}">
+    <td class="px-4 py-2.5 font-medium text-slate-900">{{ printer.name }}</td>
+    <td class="px-4 py-2.5 tabular-nums text-slate-700">
+        <button type="button"
+                class="hover:text-emerald-700"
+                hx-get="/nozzles/{{ nozzle.id }}/edit"
+                hx-target="#nozzle-{{ nozzle.id }}"
+                hx-swap="outerHTML">{{ "%.2f"|format(nozzle.diameter_mm) }} mm</button>
+    </td>
+    <td class="px-4 py-2.5 text-slate-600">{{ nozzle.material }}</td>
+    <td class="px-4 py-2.5 text-slate-500 text-xs">{{ nozzle.notes or '—' }}</td>
+    <td class="px-4 py-2.5 text-right">
+        <div class="flex items-center justify-end gap-1.5">
+            <button type="button"
+                    hx-get="/nozzles/{{ nozzle.id }}/edit"
+                    hx-target="#nozzle-{{ nozzle.id }}"
+                    hx-swap="outerHTML"
+                    class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">Bearbeiten</button>
+            <button type="button"
+                    hx-delete="/nozzles/{{ nozzle.id }}"
+                    hx-target="#nozzle-list"
+                    hx-swap="innerHTML"
+                    hx-confirm="Düse wirklich löschen?"
+                    class="inline-flex items-center rounded border border-rose-200 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50">Löschen</button>
+        </div>
+    </td>
+</tr>

@@ -1,0 +1,39 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="buildplate-{{ p.id }}">
+    <td class="px-4 py-2.5 font-medium text-slate-900">
+        <button type="button"
+                class="text-left hover:text-emerald-700"
+                hx-get="/buildplates/{{ p.id }}/edit"
+                hx-target="#buildplate-{{ p.id }}"
+                hx-swap="outerHTML">{{ p.name }}</button>
+    </td>
+    <td class="px-4 py-2.5 text-slate-600">{{ p.manufacturer or '—' }}</td>
+    <td class="px-4 py-2.5">
+        <span class="inline-flex items-center rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">{{ p.surface_type }}</span>
+        {% if p.finish %}<span class="ml-1 text-xs text-slate-500">{{ p.finish }}</span>{% endif %}
+    </td>
+    <td class="px-4 py-2.5 tabular-nums text-slate-600 text-xs">
+        {% if p.bed_temp_min and p.bed_temp_max %}{{ p.bed_temp_min }}–{{ p.bed_temp_max }} °C{% else %}—{% endif %}
+    </td>
+    <td class="px-4 py-2.5 text-xs text-slate-600">{{ p.compatible_materials or '—' }}</td>
+    <td class="px-4 py-2.5 text-right">
+        <div class="flex items-center justify-end gap-1.5">
+            <button type="button"
+                    hx-get="/buildplates/{{ p.id }}/edit"
+                    hx-target="#buildplate-{{ p.id }}"
+                    hx-swap="outerHTML"
+                    class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">Bearbeiten</button>
+            <button type="button"
+                    hx-delete="/buildplates/{{ p.id }}"
+                    hx-target="#buildplate-list"
+                    hx-swap="innerHTML"
+                    hx-confirm="Bauplatte „{{ p.name }}" wirklich löschen?"
+                    class="inline-flex items-center rounded border border-rose-200 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50">Löschen</button>
+        </div>
+    </td>
+</tr>
+{% if p.notes %}
+<tr class="bg-slate-50/50">
+    <td colspan="6" class="px-4 py-1.5 text-xs italic text-slate-500">{{ p.notes }}</td>
+</tr>
+{% endif %}

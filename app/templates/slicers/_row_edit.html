@@ -1,0 +1,38 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="slicer-{{ s.id }}" class="bg-emerald-50/40">
+    <td colspan="4" class="px-4 py-4">
+        <form hx-put="/slicers/{{ s.id }}"
+              hx-target="#slicer-{{ s.id }}"
+              hx-swap="outerHTML"
+              class="grid gap-3 sm:grid-cols-3">
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Name</span>
+                <input type="text" name="name" required value="{{ s.name }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Version</span>
+                <input type="text" name="version" value="{{ s.version or '' }}" placeholder="2.3.0"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Profil-Format</span>
+                <select name="profile_format" required
+                        class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+                    {% for fmt in profile_formats %}
+                    <option value="{{ fmt }}" {% if s.profile_format == fmt %}selected{% endif %}>{{ fmt }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="flex items-center gap-2 sm:col-span-3">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">Speichern</button>
+                <button type="button"
+                        hx-get="/slicers/{{ s.id }}/row"
+                        hx-target="#slicer-{{ s.id }}"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Abbrechen</button>
+            </div>
+        </form>
+    </td>
+</tr>

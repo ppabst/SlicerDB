@@ -1,0 +1,44 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="printer-{{ p.id }}" class="bg-emerald-50/40">
+    <td colspan="4" class="px-4 py-4">
+        <form hx-put="/printers/{{ p.id }}"
+              hx-target="#printer-{{ p.id }}"
+              hx-swap="outerHTML"
+              class="grid gap-3 sm:grid-cols-2">
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Name</span>
+                <input type="text" name="name" required value="{{ p.name }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Hersteller</span>
+                <input type="text" name="manufacturer" required value="{{ p.manufacturer }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Modell</span>
+                <input type="text" name="model" required value="{{ p.model }}"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm">
+                <span class="font-medium text-slate-700">Bauraum</span>
+                <input type="text" name="build_volume" value="{{ p.build_volume or '' }}" placeholder="250×250×260 mm"
+                       class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">
+            </label>
+            <label class="flex flex-col gap-1 text-sm sm:col-span-2">
+                <span class="font-medium text-slate-700">Notizen</span>
+                <textarea name="notes" rows="2"
+                          class="rounded border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-400">{{ p.notes or '' }}</textarea>
+            </label>
+            <div class="flex items-center gap-2 sm:col-span-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700">Speichern</button>
+                <button type="button"
+                        hx-get="/printers/{{ p.id }}/row"
+                        hx-target="#printer-{{ p.id }}"
+                        hx-swap="outerHTML"
+                        class="inline-flex items-center rounded border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Abbrechen</button>
+            </div>
+        </form>
+    </td>
+</tr>

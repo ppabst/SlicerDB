@@ -1,5 +1,7 @@
 {# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
-{% from "_macros.html" import empty_state %}
+{% from "_macros.html" import empty_state, delete_blocked_banner %}
+
+{{ delete_blocked_banner(delete_error) }}
 
 {% if filaments %}
 <div class="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">

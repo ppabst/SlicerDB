@@ -1,0 +1,31 @@
+{# SPDX-FileCopyrightText: 2026 LennyK · SPDX-License-Identifier: GPL-3.0-or-later #}
+<tr id="printer-{{ p.id }}">
+    <td class="px-4 py-2.5 font-medium text-slate-900">
+        <button type="button"
+                class="text-left hover:text-emerald-700"
+                hx-get="/printers/{{ p.id }}/edit"
+                hx-target="#printer-{{ p.id }}"
+                hx-swap="outerHTML">{{ p.name }}</button>
+    </td>
+    <td class="px-4 py-2.5 text-slate-600">{{ p.manufacturer }} <span class="text-slate-400">·</span> {{ p.model }}</td>
+    <td class="px-4 py-2.5 text-slate-600">{{ p.build_volume or '—' }}</td>
+    <td class="px-4 py-2.5 text-right">
+        <div class="flex items-center justify-end gap-1.5">
+            <button type="button"
+                    hx-get="/printers/{{ p.id }}/edit"
+                    hx-target="#printer-{{ p.id }}"
+                    hx-swap="outerHTML"
+                    class="inline-flex items-center rounded border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50">
+                Bearbeiten
+            </button>
+            <button type="button"
+                    hx-delete="/printers/{{ p.id }}"
+                    hx-target="#printer-list"
+                    hx-swap="innerHTML"
+                    hx-confirm="Drucker „{{ p.name }}" wirklich löschen?"
+                    class="inline-flex items-center rounded border border-rose-200 px-2.5 py-1 text-xs font-medium text-rose-700 hover:bg-rose-50">
+                Löschen
+            </button>
+        </div>
+    </td>
+</tr>

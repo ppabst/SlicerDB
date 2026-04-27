@@ -64,6 +64,30 @@
 </div>
 {% endmacro %}
 
+{# Renders a "delete blocked" banner above a list when something is referenced
+   by other entities. `error` is a dict { name, references[] } produced by the
+   delete handler when integrity-checks find call sites. #}
+{% macro delete_blocked_banner(error) %}
+{% if error %}
+<div class="mb-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+    <p class="font-semibold">⚠ „{{ error.name }}" kann nicht gelöscht werden</p>
+    <p class="mt-1">Wird aktuell verwendet von:</p>
+    <ul class="mt-2 space-y-1">
+        {% for ref in error.references %}
+        <li>
+            <a href="{{ ref.link }}" class="underline hover:text-rose-700">
+                <span class="font-semibold">{{ ref.kind }}:</span> {{ ref.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    <p class="mt-3 text-xs text-rose-700">
+        Lösche oder ändere zuerst die Einträge oben, dann kannst du diesen wieder entfernen.
+    </p>
+</div>
+{% endif %}
+{% endmacro %}
+
 {% macro page_header(title, subtitle='') %}
 <div class="mb-6 flex items-end justify-between">
     <div>
